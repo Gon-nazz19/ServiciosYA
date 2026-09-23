@@ -6,11 +6,16 @@ import com.example.serviciosya.di.AppContainer
 import com.example.serviciosya.navigation.AppNavigation
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModelFactory
+import com.example.serviciosya.presentation.home.HomeViewModel
+import com.example.serviciosya.presentation.home.HomeViewModelFactory
 
 @Composable
 fun ServiciosYaApp(container: AppContainer) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(container.authRepository),
     )
-    AppNavigation(authViewModel = authViewModel)
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeViewModelFactory(container.categoryRepository),
+    )
+    AppNavigation(authViewModel = authViewModel, homeViewModel = homeViewModel)
 }

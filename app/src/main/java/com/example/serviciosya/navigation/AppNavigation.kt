@@ -17,9 +17,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
-import com.example.serviciosya.presentation.category.CategoryPreviewScreen
 import com.example.serviciosya.presentation.home.HomeScreen
-import com.example.serviciosya.presentation.home.InitialHomeCategories
+import com.example.serviciosya.presentation.home.HomeViewModel
+import com.example.serviciosya.presentation.provider.ProvidersScreen
 import com.example.serviciosya.presentation.profile.ProfileScreen
 
 private object Routes {
@@ -36,9 +36,11 @@ private object Routes {
 @Composable
 fun AppNavigation(
     authViewModel: AuthViewModel,
+    homeViewModel: HomeViewModel,
     navController: NavHostController = rememberNavController(),
 ) {
     val authState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(authState.isSessionLoading, authState.user?.id) {
         if (!authState.isSessionLoading) {
@@ -82,7 +84,10 @@ fun AppNavigation(
             authState.user?.let { user ->
                 HomeScreen(
                     userName = user.name,
-                    categories = InitialHomeCategories,
+                    categories = homeState.categories,
+                    isLoading = homeState.isLoading,
+                    errorMessage = homeState.errorMessage,
+                    onRetry = homeViewModel::loadCategories,
                     onCategoryClick = { category ->
                         navController.navigate(Routes.category(category.id))
                     },
@@ -92,11 +97,12 @@ fun AppNavigation(
         }
         composable(Routes.CATEGORY) { backStackEntry ->
             val categoryId = backStackEntry.arguments?.getString("categoryId").orEmpty()
-            val categoryName = InitialHomeCategories
+            val categoryName = homeState.categories
                 .firstOrNull { it.id == categoryId }
                 ?.name
                 ?: "Categoría"
-            CategoryPreviewScreen(
+            ProvidersScreen(
+                categoryId = categoryId,
                 categoryName = categoryName,
                 onBack = navController::popBackStack,
             )

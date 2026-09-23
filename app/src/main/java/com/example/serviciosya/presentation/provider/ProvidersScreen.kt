@@ -1,4 +1,4 @@
-package com.example.serviciosya.presentation.category
+package com.example.serviciosya.presentation.provider
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,7 +19,11 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryPreviewScreen(categoryName: String, onBack: () -> Unit) {
+fun ProvidersScreen(
+    categoryId: String,
+    categoryName: String,
+    onBack: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,6 +46,11 @@ fun CategoryPreviewScreen(categoryName: String, onBack: () -> Unit) {
             Text(text = categoryName, style = MaterialTheme.typography.headlineSmall)
             Text(
                 text = "Los prestadores de esta categoría se mostrarán aquí.",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "Categoría: $categoryId",
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

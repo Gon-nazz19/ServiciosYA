@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.ElectricalServices
 import androidx.compose.material.icons.outlined.Grass
+import androidx.compose.material.icons.outlined.HomeRepairService
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Plumbing
 import androidx.compose.material.icons.outlined.Search
@@ -55,15 +56,19 @@ enum class CategoryIcon {
     AIR_CONDITIONING,
     COMPUTER,
     GARDEN,
-}
+    OTHER;
 
-val InitialHomeCategories = listOf(
-    HomeCategoryItem("electricistas", "Electricista", CategoryIcon.ELECTRICITY),
-    HomeCategoryItem("plomeros", "Plomero", CategoryIcon.PLUMBING),
-    HomeCategoryItem("aire-acondicionado", "Aire acondicionado", CategoryIcon.AIR_CONDITIONING),
-    HomeCategoryItem("tecnico-pc", "Técnico PC", CategoryIcon.COMPUTER),
-    HomeCategoryItem("jardineros", "Jardinero", CategoryIcon.GARDEN),
-)
+    companion object {
+        fun fromFirestore(value: String): CategoryIcon = when (value.lowercase()) {
+            "electrical_services", "electricity" -> ELECTRICITY
+            "plumbing" -> PLUMBING
+            "air", "air_conditioning", "ac_unit" -> AIR_CONDITIONING
+            "computer", "desktop_windows" -> COMPUTER
+            "grass", "garden", "yard" -> GARDEN
+            else -> OTHER
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -218,4 +223,5 @@ private fun CategoryIcon.imageVector(): ImageVector = when (this) {
     CategoryIcon.AIR_CONDITIONING -> Icons.Outlined.Air
     CategoryIcon.COMPUTER -> Icons.Outlined.Computer
     CategoryIcon.GARDEN -> Icons.Outlined.Grass
+    CategoryIcon.OTHER -> Icons.Outlined.HomeRepairService
 }
