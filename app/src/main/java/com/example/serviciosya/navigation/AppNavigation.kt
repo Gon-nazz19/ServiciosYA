@@ -17,7 +17,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
+import com.example.serviciosya.presentation.category.CategoryPreviewScreen
 import com.example.serviciosya.presentation.home.HomeScreen
+import com.example.serviciosya.presentation.home.InitialHomeCategories
 import com.example.serviciosya.presentation.profile.ProfileScreen
 
 private object Routes {
@@ -26,6 +28,9 @@ private object Routes {
     const val REGISTER = "register"
     const val HOME = "home"
     const val PROFILE = "profile"
+    const val CATEGORY = "category/{categoryId}"
+
+    fun category(categoryId: String) = "category/$categoryId"
 }
 
 @Composable
@@ -77,9 +82,24 @@ fun AppNavigation(
             authState.user?.let { user ->
                 HomeScreen(
                     userName = user.name,
+                    categories = InitialHomeCategories,
+                    onCategoryClick = { category ->
+                        navController.navigate(Routes.category(category.id))
+                    },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
                 )
             }
+        }
+        composable(Routes.CATEGORY) { backStackEntry ->
+            val categoryId = backStackEntry.arguments?.getString("categoryId").orEmpty()
+            val categoryName = InitialHomeCategories
+                .firstOrNull { it.id == categoryId }
+                ?.name
+                ?: "Categoría"
+            CategoryPreviewScreen(
+                categoryName = categoryName,
+                onBack = navController::popBackStack,
+            )
         }
         composable(Routes.PROFILE) {
             authState.user?.let { user ->
