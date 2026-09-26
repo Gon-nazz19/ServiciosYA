@@ -14,12 +14,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Air
-import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.ElectricalServices
 import androidx.compose.material.icons.outlined.Grass
 import androidx.compose.material.icons.outlined.HomeRepairService
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Plumbing
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
@@ -28,7 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -80,8 +77,6 @@ fun HomeScreen(
     errorMessage: String? = null,
     onRetry: () -> Unit = {},
     onCategoryClick: (HomeCategoryItem) -> Unit,
-    onProfileClick: () -> Unit,
-    onRequestsClick: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val visibleCategories = remember(categories, searchQuery) {
@@ -92,14 +87,6 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = { Text("ServiciosYA", fontWeight = FontWeight.SemiBold) },
-                actions = {
-                    IconButton(onClick = onRequestsClick) {
-                        Icon(Icons.AutoMirrored.Outlined.Assignment, contentDescription = "Mis solicitudes")
-                    }
-                    IconButton(onClick = onProfileClick) {
-                        Icon(Icons.Outlined.Person, contentDescription = "Abrir perfil")
-                    }
-                },
             )
         },
     ) { padding ->
