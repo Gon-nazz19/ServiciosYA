@@ -131,6 +131,7 @@ fun AppNavigation(
                 factory = ProviderDetailViewModelFactory(
                     providerId = providerId,
                     providerRepository = container.providerRepository,
+                    serviceRequestRepository = container.serviceRequestRepository,
                 ),
             )
             val detailState by detailViewModel.uiState.collectAsStateWithLifecycle()
@@ -142,7 +143,9 @@ fun AppNavigation(
                 uiState = detailState,
                 categoryName = categoryName,
                 onRetry = detailViewModel::loadProvider,
-                onRequestContact = {},
+                onMessageChange = detailViewModel::onMessageChange,
+                onRequestContact = { detailViewModel.requestContact(categoryName) },
+                onUserMessageShown = detailViewModel::onUserMessageShown,
                 onBack = navController::popBackStack,
             )
         }
