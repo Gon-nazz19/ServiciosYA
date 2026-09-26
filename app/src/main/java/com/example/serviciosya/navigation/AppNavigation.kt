@@ -126,9 +126,14 @@ fun AppNavigation(
                         categories = homeState.categories,
                         isLoading = homeState.isLoading,
                         errorMessage = homeState.errorMessage,
+                        search = homeState.search,
                         onRetry = homeViewModel::loadCategories,
+                        onSearchQueryChange = homeViewModel::onSearchQueryChange,
                         onCategoryClick = { category ->
                             navController.navigate(Routes.category(category.id))
+                        },
+                        onProviderClick = { provider ->
+                            navController.navigate(Routes.provider(provider.id))
                         },
                     )
                 }

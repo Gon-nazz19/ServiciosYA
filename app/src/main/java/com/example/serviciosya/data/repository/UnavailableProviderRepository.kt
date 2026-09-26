@@ -10,6 +10,8 @@ class UnavailableProviderRepository : ProviderRepository {
 
     override suspend fun getProvider(providerId: String): Result<Provider?> = unavailableResult()
 
+    override suspend fun getActiveProviders(): Result<List<Provider>> = unavailableResult()
+
     private fun <T> unavailableResult(): Result<T> = Result.failure(
         IllegalStateException(
             "Firebase no está configurado. Agregá app/google-services.json para cargar prestadores.",

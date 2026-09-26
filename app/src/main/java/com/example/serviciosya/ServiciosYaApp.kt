@@ -15,7 +15,11 @@ fun ServiciosYaApp(container: AppContainer) {
         factory = AuthViewModelFactory(container.authRepository),
     )
     val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModelFactory(container.categoryRepository),
+        factory = HomeViewModelFactory(
+            categoryRepository = container.categoryRepository,
+            providerRepository = container.providerRepository,
+            analytics = container.analyticsTracker,
+        ),
     )
     AppNavigation(
         container = container,

@@ -32,6 +32,17 @@ class FirestoreProviderRepository(
         if (document.exists()) document.toProviderDto().toDomain() else null
     }
 
+    override suspend fun getActiveProviders(): Result<List<Provider>> = runCatching {
+        firestore.collection(PROVIDERS_COLLECTION)
+            .whereEqualTo("active", true)
+            .get()
+            .await()
+            .documents
+            .map { it.toProviderDto().toDomain() }
+            .filter { it.name.isNotBlank() }
+            .sortedBy { it.name }
+    }
+
     private companion object {
         const val PROVIDERS_COLLECTION = "providers"
     }
