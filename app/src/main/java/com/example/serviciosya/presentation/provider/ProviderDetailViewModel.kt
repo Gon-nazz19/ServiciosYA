@@ -2,6 +2,7 @@ package com.example.serviciosya.presentation.provider
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.model.NewServiceRequest
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
@@ -26,9 +27,12 @@ class ProviderDetailViewModel(
     private val providerId: String,
     private val getProvider: GetProviderUseCase,
     private val createServiceRequest: CreateServiceRequestUseCase,
+    private val analytics: AnalyticsTracker,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProviderDetailUiState())
     val uiState: StateFlow<ProviderDetailUiState> = _uiState.asStateFlow()
+
+    private var providerViewTracked = false
 
     init {
         loadProvider()
@@ -45,6 +49,10 @@ class ProviderDetailViewModel(
                             isLoading = false,
                             errorMessage = if (provider == null) NOT_FOUND_MESSAGE else null,
                         )
+                    }
+                    if (provider != null && !providerViewTracked) {
+                        providerViewTracked = true
+                        analytics.trackProviderView(provider.id, provider.categoryId)
                     }
                 }
                 .onFailure {
@@ -77,6 +85,9 @@ class ProviderDetailViewModel(
                     message = state.message,
                 ),
             )
+            if (result.isSuccess) {
+                analytics.trackContactRequest(provider.id, provider.categoryId)
+            }
             _uiState.update {
                 if (result.isSuccess) {
                     it.copy(

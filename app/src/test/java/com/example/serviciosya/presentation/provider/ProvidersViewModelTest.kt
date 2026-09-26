@@ -1,6 +1,9 @@
 package com.example.serviciosya.presentation.provider
 
+import com.example.serviciosya.domain.analytics.AnalyticsEvents
+import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
+import com.example.serviciosya.testutil.FakeAnalyticsTracker
 import com.example.serviciosya.testutil.FakeProviderRepository
 import com.example.serviciosya.testutil.MainDispatcherRule
 import com.example.serviciosya.testutil.testProvider
@@ -18,10 +21,13 @@ class ProvidersViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val repository = FakeProviderRepository()
+    private val analytics = FakeAnalyticsTracker()
 
     private fun createViewModel(categoryId: String = "electricistas") = ProvidersViewModel(
         categoryId = categoryId,
+        categoryName = "Electricista",
         getActiveProvidersByCategory = GetActiveProvidersByCategoryUseCase(repository),
+        analytics = analytics,
     )
 
     @Test
@@ -89,5 +95,28 @@ class ProvidersViewModelTest {
 
         assertEquals(ProvidersViewModel.LOAD_ERROR_MESSAGE, viewModel.uiState.value.errorMessage)
         assertEquals(0, repository.providersByCategoryCalls)
+    }
+
+    @Test
+    fun `category view is tracked once with id and name`() = runTest {
+        repository.providersResult = Result.success(listOf(testProvider()))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.loadProviders()
+        advanceUntilIdle()
+
+        val event = analytics.eventsNamed(AnalyticsEvents.CATEGORY_VIEW).single()
+        assertEquals("electricistas", event.params[AnalyticsParams.CATEGORY_ID])
+        assertEquals("Electricista", event.params[AnalyticsParams.CATEGORY_NAME])
+        assertEquals(1, analytics.events.size)
+    }
+
+    @Test
+    fun `category view is not tracked when loading fails`() = runTest {
+        repository.providersResult = Result.failure(RuntimeException("offline"))
+        createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(analytics.events.isEmpty())
     }
 }

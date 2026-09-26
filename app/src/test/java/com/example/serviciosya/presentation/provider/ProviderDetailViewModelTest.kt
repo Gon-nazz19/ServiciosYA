@@ -1,7 +1,10 @@
 package com.example.serviciosya.presentation.provider
 
+import com.example.serviciosya.domain.analytics.AnalyticsEvents
+import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
 import com.example.serviciosya.domain.usecase.GetProviderUseCase
+import com.example.serviciosya.testutil.FakeAnalyticsTracker
 import com.example.serviciosya.testutil.FakeProviderRepository
 import com.example.serviciosya.testutil.FakeServiceRequestRepository
 import com.example.serviciosya.testutil.MainDispatcherRule
@@ -23,11 +26,13 @@ class ProviderDetailViewModelTest {
         providerResult = Result.success(testProvider()),
     )
     private val requestRepository = FakeServiceRequestRepository()
+    private val analytics = FakeAnalyticsTracker()
 
     private fun createViewModel(providerId: String = "provider-1") = ProviderDetailViewModel(
         providerId = providerId,
         getProvider = GetProviderUseCase(repository),
         createServiceRequest = CreateServiceRequestUseCase(requestRepository),
+        analytics = analytics,
     )
 
     @Test
@@ -155,5 +160,56 @@ class ProviderDetailViewModelTest {
         viewModel.onMessageChange("a".repeat(CreateServiceRequestUseCase.MAX_MESSAGE_LENGTH + 1))
 
         assertEquals("", viewModel.uiState.value.message)
+    }
+
+    @Test
+    fun `provider view is tracked once after loading`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.loadProvider()
+        advanceUntilIdle()
+
+        val event = analytics.eventsNamed(AnalyticsEvents.PROVIDER_VIEW).single()
+        assertEquals("provider-1", event.params[AnalyticsParams.PROVIDER_ID])
+        assertEquals("electricistas", event.params[AnalyticsParams.CATEGORY_ID])
+    }
+
+    @Test
+    fun `provider view is not tracked when the provider does not exist`() = runTest {
+        repository.providerResult = Result.success(null)
+        createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(analytics.events.isEmpty())
+    }
+
+    @Test
+    fun `contact request is tracked only when the request succeeds`() = runTest {
+        requestRepository.createResult = Result.failure(RuntimeException("offline"))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.CONTACT_REQUEST).isEmpty())
+
+        requestRepository.createResult = Result.success(Unit)
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_REQUEST).single()
+        assertEquals("provider-1", event.params[AnalyticsParams.PROVIDER_ID])
+        assertEquals("electricistas", event.params[AnalyticsParams.CATEGORY_ID])
+    }
+
+    @Test
+    fun `analytics events never include personal data`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onMessageChange("Mi teléfono es 3564-111111")
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        val allValues = analytics.events.flatMap { it.params.values }
+        assertTrue(allValues.none { it.contains("3564") || it.contains("Carlos") || it.contains("user-") })
     }
 }

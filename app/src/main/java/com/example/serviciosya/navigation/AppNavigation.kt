@@ -140,7 +140,12 @@ fun AppNavigation(
                     ?.name
                     ?: "Categoría"
                 val providersViewModel: ProvidersViewModel = viewModel(
-                    factory = ProvidersViewModelFactory(categoryId, container.providerRepository),
+                    factory = ProvidersViewModelFactory(
+                        categoryId = categoryId,
+                        categoryName = categoryName,
+                        repository = container.providerRepository,
+                        analytics = container.analyticsTracker,
+                    ),
                 )
                 val providersState by providersViewModel.uiState.collectAsStateWithLifecycle()
                 ProvidersScreen(
@@ -160,6 +165,7 @@ fun AppNavigation(
                         providerId = providerId,
                         providerRepository = container.providerRepository,
                         serviceRequestRepository = container.serviceRequestRepository,
+                        analytics = container.analyticsTracker,
                     ),
                 )
                 val detailState by detailViewModel.uiState.collectAsStateWithLifecycle()
