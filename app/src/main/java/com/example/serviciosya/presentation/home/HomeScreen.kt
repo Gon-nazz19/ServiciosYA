@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Air
+import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.ElectricalServices
 import androidx.compose.material.icons.outlined.Grass
@@ -80,6 +81,7 @@ fun HomeScreen(
     onRetry: () -> Unit = {},
     onCategoryClick: (HomeCategoryItem) -> Unit,
     onProfileClick: () -> Unit,
+    onRequestsClick: () -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val visibleCategories = remember(categories, searchQuery) {
@@ -91,6 +93,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("ServiciosYA", fontWeight = FontWeight.SemiBold) },
                 actions = {
+                    IconButton(onClick = onRequestsClick) {
+                        Icon(Icons.AutoMirrored.Outlined.Assignment, contentDescription = "Mis solicitudes")
+                    }
                     IconButton(onClick = onProfileClick) {
                         Icon(Icons.Outlined.Person, contentDescription = "Abrir perfil")
                     }

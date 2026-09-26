@@ -28,6 +28,9 @@ import com.example.serviciosya.presentation.provider.ProvidersScreen
 import com.example.serviciosya.presentation.provider.ProvidersViewModel
 import com.example.serviciosya.presentation.provider.ProvidersViewModelFactory
 import com.example.serviciosya.presentation.profile.ProfileScreen
+import com.example.serviciosya.presentation.request.RequestsScreen
+import com.example.serviciosya.presentation.request.RequestsViewModel
+import com.example.serviciosya.presentation.request.RequestsViewModelFactory
 
 private object Routes {
     const val SESSION = "session"
@@ -35,6 +38,7 @@ private object Routes {
     const val REGISTER = "register"
     const val HOME = "home"
     const val PROFILE = "profile"
+    const val REQUESTS = "requests"
     const val CATEGORY = "category/{categoryId}"
     const val PROVIDER = "provider/{providerId}"
 
@@ -102,6 +106,7 @@ fun AppNavigation(
                         navController.navigate(Routes.category(category.id))
                     },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
+                    onRequestsClick = { navController.navigate(Routes.REQUESTS) },
                 )
             }
         }
@@ -146,6 +151,18 @@ fun AppNavigation(
                 onMessageChange = detailViewModel::onMessageChange,
                 onRequestContact = { detailViewModel.requestContact(categoryName) },
                 onUserMessageShown = detailViewModel::onUserMessageShown,
+                onBack = navController::popBackStack,
+            )
+        }
+        composable(Routes.REQUESTS) {
+            val requestsViewModel: RequestsViewModel = viewModel(
+                factory = RequestsViewModelFactory(container.serviceRequestRepository),
+            )
+            val requestsState by requestsViewModel.uiState.collectAsStateWithLifecycle()
+            LaunchedEffect(Unit) { requestsViewModel.loadRequests() }
+            RequestsScreen(
+                uiState = requestsState,
+                onRetry = requestsViewModel::loadRequests,
                 onBack = navController::popBackStack,
             )
         }

@@ -1,7 +1,10 @@
 package com.example.serviciosya.data.repository
 
+import com.example.serviciosya.data.model.toDomain
+import com.example.serviciosya.data.model.toServiceRequestDto
 import com.example.serviciosya.domain.model.NewServiceRequest
 import com.example.serviciosya.domain.model.RequestStatus
+import com.example.serviciosya.domain.model.ServiceRequest
 import com.example.serviciosya.domain.repository.ServiceRequestRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
@@ -30,8 +33,20 @@ class FirestoreServiceRequestRepository(
         Unit
     }
 
+    override suspend fun getMyRequests(): Result<List<ServiceRequest>> = runCatching {
+        val clientId = auth.currentUser?.uid
+            ?: throw IllegalStateException(NOT_AUTHENTICATED_MESSAGE)
+        // Filtered only by clientId: ordering happens in the use case to avoid a composite index.
+        firestore.collection(SERVICE_REQUESTS_COLLECTION)
+            .whereEqualTo("clientId", clientId)
+            .get()
+            .await()
+            .documents
+            .map { it.toServiceRequestDto().toDomain() }
+    }
+
     private companion object {
         const val SERVICE_REQUESTS_COLLECTION = "serviceRequests"
-        const val NOT_AUTHENTICATED_MESSAGE = "Tenés que iniciar sesión para enviar solicitudes."
+        const val NOT_AUTHENTICATED_MESSAGE = "Tenés que iniciar sesión para ver o enviar solicitudes."
     }
 }
