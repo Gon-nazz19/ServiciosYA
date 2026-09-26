@@ -21,6 +21,9 @@ import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
 import com.example.serviciosya.presentation.home.HomeScreen
 import com.example.serviciosya.presentation.home.HomeViewModel
+import com.example.serviciosya.presentation.provider.ProviderDetailScreen
+import com.example.serviciosya.presentation.provider.ProviderDetailViewModel
+import com.example.serviciosya.presentation.provider.ProviderDetailViewModelFactory
 import com.example.serviciosya.presentation.provider.ProvidersScreen
 import com.example.serviciosya.presentation.provider.ProvidersViewModel
 import com.example.serviciosya.presentation.provider.ProvidersViewModelFactory
@@ -33,8 +36,10 @@ private object Routes {
     const val HOME = "home"
     const val PROFILE = "profile"
     const val CATEGORY = "category/{categoryId}"
+    const val PROVIDER = "provider/{providerId}"
 
     fun category(categoryId: String) = "category/$categoryId"
+    fun provider(providerId: String) = "provider/$providerId"
 }
 
 @Composable
@@ -114,7 +119,30 @@ fun AppNavigation(
                 categoryName = categoryName,
                 uiState = providersState,
                 onRetry = providersViewModel::loadProviders,
-                onProviderClick = {},
+                onProviderClick = { provider ->
+                    navController.navigate(Routes.provider(provider.id))
+                },
+                onBack = navController::popBackStack,
+            )
+        }
+        composable(Routes.PROVIDER) { backStackEntry ->
+            val providerId = backStackEntry.arguments?.getString("providerId").orEmpty()
+            val detailViewModel: ProviderDetailViewModel = viewModel(
+                factory = ProviderDetailViewModelFactory(
+                    providerId = providerId,
+                    providerRepository = container.providerRepository,
+                ),
+            )
+            val detailState by detailViewModel.uiState.collectAsStateWithLifecycle()
+            val categoryName = homeState.categories
+                .firstOrNull { it.id == detailState.provider?.categoryId }
+                ?.name
+                .orEmpty()
+            ProviderDetailScreen(
+                uiState = detailState,
+                categoryName = categoryName,
+                onRetry = detailViewModel::loadProvider,
+                onRequestContact = {},
                 onBack = navController::popBackStack,
             )
         }
