@@ -17,5 +17,9 @@ fun ServiciosYaApp(container: AppContainer) {
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModelFactory(container.categoryRepository),
     )
-    AppNavigation(authViewModel = authViewModel, homeViewModel = homeViewModel)
+    AppNavigation(
+        container = container,
+        authViewModel = authViewModel,
+        homeViewModel = homeViewModel,
+    )
 }

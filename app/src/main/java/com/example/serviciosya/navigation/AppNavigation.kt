@@ -9,17 +9,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.serviciosya.di.AppContainer
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
 import com.example.serviciosya.presentation.home.HomeScreen
 import com.example.serviciosya.presentation.home.HomeViewModel
 import com.example.serviciosya.presentation.provider.ProvidersScreen
+import com.example.serviciosya.presentation.provider.ProvidersViewModel
+import com.example.serviciosya.presentation.provider.ProvidersViewModelFactory
 import com.example.serviciosya.presentation.profile.ProfileScreen
 
 private object Routes {
@@ -35,6 +39,7 @@ private object Routes {
 
 @Composable
 fun AppNavigation(
+    container: AppContainer,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
     navController: NavHostController = rememberNavController(),
@@ -101,9 +106,15 @@ fun AppNavigation(
                 .firstOrNull { it.id == categoryId }
                 ?.name
                 ?: "Categoría"
+            val providersViewModel: ProvidersViewModel = viewModel(
+                factory = ProvidersViewModelFactory(categoryId, container.providerRepository),
+            )
+            val providersState by providersViewModel.uiState.collectAsStateWithLifecycle()
             ProvidersScreen(
-                categoryId = categoryId,
                 categoryName = categoryName,
+                uiState = providersState,
+                onRetry = providersViewModel::loadProviders,
+                onProviderClick = {},
                 onBack = navController::popBackStack,
             )
         }
