@@ -1,0 +1,16 @@
+{
+  "name": "serviciosya-seed",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Carga el dataset de prueba de ServiciosYa en Cloud Firestore.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node seed.js --dry-run",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

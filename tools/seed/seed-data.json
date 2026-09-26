@@ -1,0 +1,176 @@
+{
+  "categories": [
+    { "id": "electricistas", "name": "Electricista", "icon": "electrical_services", "active": true },
+    { "id": "plomeros", "name": "Plomero", "icon": "plumbing", "active": true },
+    { "id": "aire-acondicionado", "name": "Aire acondicionado", "icon": "ac_unit", "active": true },
+    { "id": "tecnicos-pc", "name": "Técnico PC", "icon": "computer", "active": true },
+    { "id": "jardineros", "name": "Jardinero", "icon": "grass", "active": true }
+  ],
+  "providers": [
+    {
+      "id": "carlos-electricidad",
+      "name": "Carlos Electricidad",
+      "description": "Instalaciones y reparaciones eléctricas domiciliarias. Tableros, tomas y luminarias.",
+      "categoryId": "electricistas",
+      "city": "San Francisco",
+      "phone": "3564-400101",
+      "rating": 4.7,
+      "reviewCount": 23,
+      "verified": true
+    },
+    {
+      "id": "electrofix",
+      "name": "ElectroFix",
+      "description": "Urgencias eléctricas las 24 horas y mantenimiento para comercios.",
+      "categoryId": "electricistas",
+      "city": "San Francisco",
+      "phone": "3564-400102",
+      "rating": 4.5,
+      "reviewCount": 11,
+      "verified": false
+    },
+    {
+      "id": "luz-y-fuerza-martinez",
+      "name": "Luz y Fuerza Martínez",
+      "description": "Instalaciones trifásicas, puesta a tierra y certificaciones.",
+      "categoryId": "electricistas",
+      "city": "Frontera",
+      "phone": "3564-400103",
+      "rating": 5,
+      "reviewCount": 4,
+      "verified": false
+    },
+    {
+      "id": "plomeria-garcia",
+      "name": "Plomería García",
+      "description": "Destapaciones, pérdidas de agua y colocación de sanitarios.",
+      "categoryId": "plomeros",
+      "city": "San Francisco",
+      "phone": "3564-400201",
+      "rating": 4.6,
+      "reviewCount": 18,
+      "verified": true
+    },
+    {
+      "id": "aguas-claras",
+      "name": "Aguas Claras Servicios",
+      "description": "Instalación de termotanques, bombas y cañerías de agua y gas.",
+      "categoryId": "plomeros",
+      "city": "San Francisco",
+      "phone": "3564-400202",
+      "rating": 4.2,
+      "reviewCount": 9,
+      "verified": false
+    },
+    {
+      "id": "destapaciones-rapidas",
+      "name": "Destapaciones Rápidas",
+      "description": "Destapaciones con máquina eléctrica y cámara de inspección.",
+      "categoryId": "plomeros",
+      "city": "Frontera",
+      "phone": "3564-400203",
+      "rating": null,
+      "reviewCount": 0,
+      "verified": false
+    },
+    {
+      "id": "frio-total",
+      "name": "Frío Total",
+      "description": "Instalación y service de aires acondicionados split y centrales.",
+      "categoryId": "aire-acondicionado",
+      "city": "San Francisco",
+      "phone": "3564-400301",
+      "rating": 4.8,
+      "reviewCount": 31,
+      "verified": true
+    },
+    {
+      "id": "climatizacion-sur",
+      "name": "Climatización Sur",
+      "description": "Carga de gas, limpieza de equipos y reparación de placas.",
+      "categoryId": "aire-acondicionado",
+      "city": "San Francisco",
+      "phone": "3564-400302",
+      "rating": 4.3,
+      "reviewCount": 7,
+      "verified": false
+    },
+    {
+      "id": "aire-express",
+      "name": "Aire Express",
+      "description": "Instalaciones en el día y mantenimiento preventivo.",
+      "categoryId": "aire-acondicionado",
+      "city": "Josefina",
+      "phone": "3564-400303",
+      "rating": 4.0,
+      "reviewCount": 3,
+      "verified": false
+    },
+    {
+      "id": "pc-doctor",
+      "name": "PC Doctor",
+      "description": "Reparación de computadoras y notebooks, formateo y limpieza.",
+      "categoryId": "tecnicos-pc",
+      "city": "San Francisco",
+      "phone": "3564-400401",
+      "rating": 4.9,
+      "reviewCount": 42,
+      "verified": true
+    },
+    {
+      "id": "soporte-it-lopez",
+      "name": "Soporte IT López",
+      "description": "Redes hogareñas, WiFi, impresoras y recuperación de datos.",
+      "categoryId": "tecnicos-pc",
+      "city": "San Francisco",
+      "phone": "3564-400402",
+      "rating": 4.4,
+      "reviewCount": 12,
+      "verified": false
+    },
+    {
+      "id": "byte-service",
+      "name": "Byte Service",
+      "description": "Armado de PCs a medida y actualización de hardware.",
+      "categoryId": "tecnicos-pc",
+      "city": "Frontera",
+      "phone": "3564-400403",
+      "rating": 3.9,
+      "reviewCount": 5,
+      "verified": false
+    },
+    {
+      "id": "verde-jardin",
+      "name": "Verde Jardín",
+      "description": "Corte de césped, poda y mantenimiento de espacios verdes.",
+      "categoryId": "jardineros",
+      "city": "San Francisco",
+      "phone": "3564-400501",
+      "rating": 4.6,
+      "reviewCount": 15,
+      "verified": true
+    },
+    {
+      "id": "parques-y-jardines-ruiz",
+      "name": "Parques y Jardines Ruiz",
+      "description": "Diseño de jardines, riego automático y parquización.",
+      "categoryId": "jardineros",
+      "city": "San Francisco",
+      "phone": "3564-400502",
+      "rating": 4.1,
+      "reviewCount": 6,
+      "verified": false
+    },
+    {
+      "id": "el-podador",
+      "name": "El Podador",
+      "description": "Poda en altura, extracción de árboles y limpieza de terrenos.",
+      "categoryId": "jardineros",
+      "city": "Josefina",
+      "phone": "3564-400503",
+      "rating": 4.5,
+      "reviewCount": 8,
+      "verified": false
+    }
+  ]
+}
