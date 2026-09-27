@@ -1,6 +1,7 @@
 package com.example.serviciosya.presentation.home
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Air
@@ -41,6 +43,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -88,6 +92,7 @@ fun HomeScreen(
     onCategoryClick: (HomeCategoryItem) -> Unit,
     onProviderClick: (ProviderSearchItem) -> Unit = {},
 ) {
+    val focusManager = LocalFocusManager.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,7 +103,9 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
+                .padding(padding)
+                // Tapping outside the search box closes the keyboard.
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) },
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
@@ -130,6 +137,8 @@ fun HomeScreen(
                     },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    // The search key closes the keyboard so the results below are visible.
+                    keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                 )
                 if (!search.isActive) {
                     Text(text = "Categorías", style = MaterialTheme.typography.titleLarge)
