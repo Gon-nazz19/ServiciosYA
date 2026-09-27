@@ -20,3 +20,5 @@ local.properties
 /tools/firestore-rules/rules-backup-*.rules
 firebase-debug.log
 firestore-debug.log
+/tools/metrics/node_modules
+/tools/metrics/resultados-*.md

@@ -1,0 +1,15 @@
+{
+  "name": "serviciosya-metrics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Métricas de uso de ServiciosYa desde Firebase Auth y Firestore (solo lectura).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "report": "node report.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}
