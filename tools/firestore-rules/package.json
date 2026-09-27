@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "firebase emulators:exec --only firestore --project demo-serviciosya \"node --test rules.test.js\"",
+    "test:android": "firebase emulators:exec --only firestore,auth --project demo-serviciosya \"node run-android-tests.js\"",
     "deploy": "node deploy.js"
   },
   "dependencies": {
