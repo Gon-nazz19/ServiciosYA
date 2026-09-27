@@ -46,12 +46,15 @@ class HomeViewModelTest {
     )
     private val analytics = FakeAnalyticsTracker()
 
-    private fun createViewModel() = HomeViewModel(
+    private fun createViewModelWithoutSession() = HomeViewModel(
         getActiveCategories = GetActiveCategoriesUseCase(categoryRepository),
         getActiveProviders = GetActiveProvidersUseCase(providerRepository),
         searchServices = SearchServicesUseCase(),
         analytics = analytics,
     )
+
+    /** Mirrors AppNavigation: categories are requested once a user is signed in. */
+    private fun createViewModel() = createViewModelWithoutSession().also { it.loadCategories() }
 
     @Test
     fun `loads categories mapped to home items`() = runTest {
@@ -240,5 +243,20 @@ class HomeViewModelTest {
         advanceUntilIdle()
 
         assertEquals(2, analytics.eventsNamed(AnalyticsEvents.SERVICE_SEARCH).size)
+    }
+
+    @Test
+    fun `categories are not requested until a user signs in`() = runTest {
+        val viewModel = createViewModelWithoutSession()
+        advanceUntilIdle()
+
+        assertEquals(0, categoryRepository.calls)
+        assertTrue(viewModel.uiState.value.isLoading)
+
+        viewModel.loadCategories()
+        advanceUntilIdle()
+
+        assertEquals(1, categoryRepository.calls)
+        assertEquals(2, viewModel.uiState.value.categories.size)
     }
 }

@@ -59,10 +59,10 @@ class HomeViewModel(
     private var searchTrackingJob: Job? = null
     private var lastTrackedQuery: String? = null
 
-    init {
-        loadCategories()
-    }
-
+    /**
+     * Categories can only be read with a session (Firestore rules), so they are loaded
+     * when a user signs in instead of when this ViewModel is created at app start.
+     */
     fun loadCategories() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }

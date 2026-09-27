@@ -36,7 +36,7 @@ adb shell setprop debug.firebase.analytics.app com.example.serviciosya
 | 1 | Abrir la app sin sesión | Pantalla de login | — | ☐ |
 | 2 | *Crear cuenta* con campos vacíos o email inválido | Mensaje de validación en español; no se crea la cuenta | — | ☐ |
 | 3 | *Crear cuenta* con un email que ya existe | "Ya existe una cuenta con ese email…" | — | ☐ |
-| 4 | *Crear cuenta* con datos válidos | Entra a Home: "Hola, *nombre*" | — | ☐ |
+| 4 | *Crear cuenta* con datos válidos | Entra a Home: "Hola, *nombre*" y las categorías aparecen solas, sin tocar *Reintentar* | — | ☐ |
 | 5 | Ver Home | 5 categorías | — | ☐ |
 | 6 | Tocar **Electricista** | 3 prestadores con rating y ciudad | `category_view` | ☐ |
 | 7 | Tocar un prestador | Perfil con "Sobre mí" y *Solicitar contacto* | `provider_view` | ☐ |

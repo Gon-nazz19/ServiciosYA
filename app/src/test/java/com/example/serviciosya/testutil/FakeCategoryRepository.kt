@@ -6,5 +6,11 @@ import com.example.serviciosya.domain.repository.CategoryRepository
 class FakeCategoryRepository(
     var categoriesResult: Result<List<Category>> = Result.success(emptyList()),
 ) : CategoryRepository {
-    override suspend fun getActiveCategories(): Result<List<Category>> = categoriesResult
+    var calls = 0
+        private set
+
+    override suspend fun getActiveCategories(): Result<List<Category>> {
+        calls++
+        return categoriesResult
+    }
 }

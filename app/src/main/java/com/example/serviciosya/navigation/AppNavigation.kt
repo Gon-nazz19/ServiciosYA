@@ -69,6 +69,7 @@ fun AppNavigation(
             // drop them so a new session never restores another user's data.
             TopLevelDestination.entries.forEach { navController.clearBackStack(it.route) }
             homeViewModel.resetSearch()
+            if (authState.user != null) homeViewModel.loadCategories()
         }
     }
 
