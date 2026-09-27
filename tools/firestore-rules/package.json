@@ -1,0 +1,21 @@
+{
+  "name": "serviciosya-firestore-rules",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tests y despliegue de las Firestore Security Rules de ServiciosYa.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore --project demo-serviciosya \"node --test rules.test.js\"",
+    "deploy": "node deploy.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.31.0"
+  }
+}

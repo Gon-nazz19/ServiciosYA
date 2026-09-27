@@ -16,3 +16,7 @@
 local.properties
 /tools/seed/node_modules
 *service-account*.json
+/tools/firestore-rules/node_modules
+/tools/firestore-rules/rules-backup-*.rules
+firebase-debug.log
+firestore-debug.log

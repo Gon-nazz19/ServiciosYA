@@ -1,0 +1,67 @@
+rules_version = '2';
+
+// ServiciosYa — Firestore Security Rules (US-130).
+// Anything not matched below is denied.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Profile created on registration: users/{uid} = { name, email, role, createdAt }.
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['name', 'email', 'role', 'createdAt'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.email is string
+        // Nobody can self-assign another role (e.g. provider or admin) from the app.
+        && request.resource.data.role == 'CLIENT'
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // Catalog data is loaded with the seed script (Admin SDK bypasses these rules).
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /providers/{providerId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /serviceRequests/{requestId} {
+      // Only the client who made the request can read it. List queries must filter
+      // by clientId == auth.uid, which is what "Mis solicitudes" does.
+      allow read: if isSignedIn() && resource.data.clientId == request.auth.uid;
+
+      allow create: if isSignedIn()
+        && request.resource.data.keys().hasAll([
+          'clientId', 'providerId', 'categoryId', 'message', 'status', 'createdAt'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'clientId', 'providerId', 'categoryId', 'providerName', 'categoryName',
+          'message', 'status', 'createdAt'
+        ])
+        && request.resource.data.clientId == request.auth.uid
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.message is string
+        && request.resource.data.message.size() <= 500
+        && request.resource.data.providerId is string
+        && request.resource.data.categoryId is string
+        && exists(/databases/$(database)/documents/providers/$(request.resource.data.providerId));
+
+      // Status changes belong to a future provider/admin flow, not to the MVP client app.
+      allow update, delete: if false;
+    }
+  }
+}
