@@ -93,9 +93,9 @@ async function main() {
   }
 
   // Required lazily so --dry-run works without installing dependencies.
-  const admin = require('firebase-admin');
-  admin.initializeApp({ credential: admin.credential.applicationDefault() });
-  const firestore = admin.firestore();
+  const { initializeApp, applicationDefault } = require('firebase-admin/app');
+  const { getFirestore } = require('firebase-admin/firestore');
+  const firestore = getFirestore(initializeApp({ credential: applicationDefault() }));
 
   const batch = firestore.batch();
   for (const { id, ...category } of data.categories) {
@@ -106,7 +106,7 @@ async function main() {
   }
   await batch.commit();
 
-  const projectId = admin.app().options.projectId || process.env.GCLOUD_PROJECT || '(proyecto por defecto)';
+  const { project_id: projectId } = require(path.resolve(process.env.GOOGLE_APPLICATION_CREDENTIALS));
   console.log(`Seed cargado en ${projectId}.`);
 }
 
