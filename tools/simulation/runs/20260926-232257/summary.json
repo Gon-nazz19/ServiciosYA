@@ -1,0 +1,208 @@
+{
+  "run_id": "20260926-232257",
+  "seed": 2026,
+  "started": "2026-09-26T23:22:57.558492",
+  "users": [
+    {
+      "id": "U01",
+      "persona": "decidido",
+      "name": "Carolina Romero",
+      "email": "sim-20260926-232257-01@serviciosya.test",
+      "ok": true,
+      "seconds": 60.5
+    },
+    {
+      "id": "U02",
+      "persona": "explorador",
+      "name": "Antonella Alvarez",
+      "email": "sim-20260926-232257-02@serviciosya.test",
+      "ok": true,
+      "seconds": 63.2
+    },
+    {
+      "id": "U03",
+      "persona": "rebote",
+      "name": "Carolina Fernandez",
+      "email": "sim-20260926-232257-03@serviciosya.test",
+      "ok": true,
+      "seconds": 36.3
+    },
+    {
+      "id": "U04",
+      "persona": "decidido",
+      "name": "Rocio Alvarez",
+      "email": "sim-20260926-232257-04@serviciosya.test",
+      "ok": true,
+      "seconds": 52.6
+    },
+    {
+      "id": "U05",
+      "persona": "comparador",
+      "name": "Antonella Alvarez",
+      "email": "sim-20260926-232257-05@serviciosya.test",
+      "ok": true,
+      "seconds": 95.5
+    },
+    {
+      "id": "U06",
+      "persona": "decidido",
+      "name": "Milagros Diaz",
+      "email": "sim-20260926-232257-06@serviciosya.test",
+      "ok": true,
+      "seconds": 60.0
+    },
+    {
+      "id": "U07",
+      "persona": "buscador",
+      "name": "Florencia Sosa",
+      "email": "sim-20260926-232257-07@serviciosya.test",
+      "ok": true,
+      "seconds": 103.0
+    },
+    {
+      "id": "U08",
+      "persona": "decidido",
+      "name": "Micaela Fernandez",
+      "email": "sim-20260926-232257-08@serviciosya.test",
+      "ok": true,
+      "seconds": 76.4
+    },
+    {
+      "id": "U09",
+      "persona": "decidido",
+      "name": "Gonzalo Sosa",
+      "email": "sim-20260926-232257-09@serviciosya.test",
+      "ok": true,
+      "seconds": 69.3
+    },
+    {
+      "id": "U10",
+      "persona": "decidido",
+      "name": "Antonella Perez",
+      "email": "sim-20260926-232257-10@serviciosya.test",
+      "ok": true,
+      "seconds": 77.0
+    },
+    {
+      "id": "U11",
+      "persona": "decidido",
+      "name": "Facundo Rodriguez",
+      "email": "sim-20260926-232257-11@serviciosya.test",
+      "ok": true,
+      "seconds": 70.4
+    },
+    {
+      "id": "U12",
+      "persona": "decidido",
+      "name": "Nicolas Perez",
+      "email": "sim-20260926-232257-12@serviciosya.test",
+      "ok": true,
+      "seconds": 76.9
+    },
+    {
+      "id": "U13",
+      "persona": "decidido",
+      "name": "Ignacio Perez",
+      "email": "sim-20260926-232257-13@serviciosya.test",
+      "ok": true,
+      "seconds": 51.4
+    },
+    {
+      "id": "U14",
+      "persona": "rebote",
+      "name": "Martin Diaz",
+      "email": "sim-20260926-232257-14@serviciosya.test",
+      "ok": true,
+      "seconds": 37.6
+    },
+    {
+      "id": "U15",
+      "persona": "decidido",
+      "name": "Rocio Romero",
+      "email": "sim-20260926-232257-15@serviciosya.test",
+      "ok": true,
+      "seconds": 75.4
+    },
+    {
+      "id": "U16",
+      "persona": "decidido",
+      "name": "Joaquin Sosa",
+      "email": "sim-20260926-232257-16@serviciosya.test",
+      "ok": true,
+      "seconds": 59.6
+    },
+    {
+      "id": "U17",
+      "persona": "decidido",
+      "name": "Sofia Diaz",
+      "email": "sim-20260926-232257-17@serviciosya.test",
+      "ok": true,
+      "seconds": 70.5
+    },
+    {
+      "id": "U18",
+      "persona": "decidido",
+      "name": "Milagros Martinez",
+      "email": "sim-20260926-232257-18@serviciosya.test",
+      "ok": true,
+      "seconds": 75.6
+    },
+    {
+      "id": "U19",
+      "persona": "comparador",
+      "name": "Mateo Fernandez",
+      "email": "sim-20260926-232257-19@serviciosya.test",
+      "ok": true,
+      "seconds": 99.4
+    },
+    {
+      "id": "U20",
+      "persona": "comparador",
+      "name": "Antonella Diaz",
+      "email": "sim-20260926-232257-20@serviciosya.test",
+      "ok": true,
+      "seconds": 94.1
+    },
+    {
+      "id": "U21",
+      "persona": "rebote",
+      "name": "Tomas Perez",
+      "email": "sim-20260926-232257-21@serviciosya.test",
+      "ok": true,
+      "seconds": 36.9
+    },
+    {
+      "id": "U22",
+      "persona": "explorador",
+      "name": "Agustina Alvarez",
+      "email": "sim-20260926-232257-22@serviciosya.test",
+      "ok": true,
+      "seconds": 53.0
+    },
+    {
+      "id": "U23",
+      "persona": "buscador",
+      "name": "Lucia Sosa",
+      "email": "sim-20260926-232257-23@serviciosya.test",
+      "ok": true,
+      "seconds": 98.1
+    },
+    {
+      "id": "U24",
+      "persona": "comparador",
+      "name": "Julieta Perez",
+      "email": "sim-20260926-232257-24@serviciosya.test",
+      "ok": true,
+      "seconds": 69.6
+    },
+    {
+      "id": "U25",
+      "persona": "decidido",
+      "name": "Santiago Diaz",
+      "email": "sim-20260926-232257-25@serviciosya.test",
+      "ok": true,
+      "seconds": 70.1
+    }
+  ],
+  "finished": "2026-09-26T23:51:55.167153"
+}

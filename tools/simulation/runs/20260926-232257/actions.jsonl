@@ -1,0 +1,124 @@
+{"time": "2026-09-26T23:23:31", "user": "U01", "action": "registro", "email": "sim-20260926-232257-01@serviciosya.test"}
+{"time": "2026-09-26T23:23:35", "user": "U01", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:23:42", "user": "U01", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:23:56", "user": "U01", "action": "solicitar_contacto", "prestador": "PC Doctor", "con_mensaje": true}
+{"time": "2026-09-26T23:24:31", "user": "U02", "action": "registro", "email": "sim-20260926-232257-02@serviciosya.test"}
+{"time": "2026-09-26T23:24:35", "user": "U02", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:24:46", "user": "U02", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:24:51", "user": "U02", "action": "ver_prestador", "prestador": "Soporte IT López", "rating": 4.4}
+{"time": "2026-09-26T23:25:01", "user": "U02", "action": "abandona", "donde": "sin_decidirse"}
+{"time": "2026-09-26T23:25:34", "user": "U03", "action": "registro", "email": "sim-20260926-232257-03@serviciosya.test"}
+{"time": "2026-09-26T23:25:37", "user": "U03", "action": "abandona", "donde": "inicio"}
+{"time": "2026-09-26T23:26:11", "user": "U04", "action": "registro", "email": "sim-20260926-232257-04@serviciosya.test"}
+{"time": "2026-09-26T23:26:15", "user": "U04", "action": "ver_categoria", "categoria": "Electricista"}
+{"time": "2026-09-26T23:26:21", "user": "U04", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:26:29", "user": "U04", "action": "solicitar_contacto", "prestador": "Luz y Fuerza Martínez", "con_mensaje": false}
+{"time": "2026-09-26T23:27:04", "user": "U05", "action": "registro", "email": "sim-20260926-232257-05@serviciosya.test"}
+{"time": "2026-09-26T23:27:09", "user": "U05", "action": "ver_categoria", "categoria": "Electricista"}
+{"time": "2026-09-26T23:27:15", "user": "U05", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:27:23", "user": "U05", "action": "ver_prestador", "prestador": "Carlos Electricidad", "rating": 4.7}
+{"time": "2026-09-26T23:27:30", "user": "U05", "action": "ver_prestador", "prestador": "ElectroFix", "rating": 4.5}
+{"time": "2026-09-26T23:27:39", "user": "U05", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:27:47", "user": "U05", "action": "solicitar_contacto", "prestador": "Luz y Fuerza Martínez", "con_mensaje": false}
+{"time": "2026-09-26T23:28:04", "user": "U05", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:28:39", "user": "U06", "action": "registro", "email": "sim-20260926-232257-06@serviciosya.test"}
+{"time": "2026-09-26T23:28:44", "user": "U06", "action": "ver_categoria", "categoria": "Jardinero"}
+{"time": "2026-09-26T23:28:50", "user": "U06", "action": "ver_prestador", "prestador": "Verde Jardín", "rating": 4.6}
+{"time": "2026-09-26T23:29:04", "user": "U06", "action": "solicitar_contacto", "prestador": "Verde Jardín", "con_mensaje": true}
+{"time": "2026-09-26T23:29:39", "user": "U07", "action": "registro", "email": "sim-20260926-232257-07@serviciosya.test"}
+{"time": "2026-09-26T23:29:48", "user": "U07", "action": "buscar", "termino": "herrero", "con_resultados": false}
+{"time": "2026-09-26T23:30:04", "user": "U07", "action": "buscar", "termino": "plomero", "con_resultados": true}
+{"time": "2026-09-26T23:30:12", "user": "U07", "action": "ver_categoria", "categoria": "Plomero", "desde": "busqueda"}
+{"time": "2026-09-26T23:30:17", "user": "U07", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:30:31", "user": "U07", "action": "solicitar_contacto", "prestador": "Plomería García", "con_mensaje": true}
+{"time": "2026-09-26T23:30:48", "user": "U07", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:31:22", "user": "U08", "action": "registro", "email": "sim-20260926-232257-08@serviciosya.test"}
+{"time": "2026-09-26T23:31:26", "user": "U08", "action": "ver_categoria", "categoria": "Jardinero"}
+{"time": "2026-09-26T23:31:32", "user": "U08", "action": "ver_prestador", "prestador": "Verde Jardín", "rating": 4.6}
+{"time": "2026-09-26T23:31:47", "user": "U08", "action": "solicitar_contacto", "prestador": "Verde Jardín", "con_mensaje": true}
+{"time": "2026-09-26T23:32:04", "user": "U08", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:32:38", "user": "U09", "action": "registro", "email": "sim-20260926-232257-09@serviciosya.test"}
+{"time": "2026-09-26T23:32:43", "user": "U09", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:32:48", "user": "U09", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:32:57", "user": "U09", "action": "solicitar_contacto", "prestador": "Plomería García", "con_mensaje": false}
+{"time": "2026-09-26T23:33:13", "user": "U09", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:33:47", "user": "U10", "action": "registro", "email": "sim-20260926-232257-10@serviciosya.test"}
+{"time": "2026-09-26T23:33:52", "user": "U10", "action": "ver_categoria", "categoria": "Aire acondicionado"}
+{"time": "2026-09-26T23:33:58", "user": "U10", "action": "ver_prestador", "prestador": "Frío Total", "rating": 4.8}
+{"time": "2026-09-26T23:34:13", "user": "U10", "action": "solicitar_contacto", "prestador": "Frío Total", "con_mensaje": true}
+{"time": "2026-09-26T23:34:30", "user": "U10", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:35:06", "user": "U11", "action": "registro", "email": "sim-20260926-232257-11@serviciosya.test"}
+{"time": "2026-09-26T23:35:10", "user": "U11", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:35:16", "user": "U11", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:35:24", "user": "U11", "action": "solicitar_contacto", "prestador": "PC Doctor", "con_mensaje": false}
+{"time": "2026-09-26T23:35:40", "user": "U11", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:36:16", "user": "U12", "action": "registro", "email": "sim-20260926-232257-12@serviciosya.test"}
+{"time": "2026-09-26T23:36:20", "user": "U12", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:36:26", "user": "U12", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:36:41", "user": "U12", "action": "solicitar_contacto", "prestador": "Plomería García", "con_mensaje": true}
+{"time": "2026-09-26T23:36:58", "user": "U12", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:37:32", "user": "U13", "action": "registro", "email": "sim-20260926-232257-13@serviciosya.test"}
+{"time": "2026-09-26T23:37:36", "user": "U13", "action": "ver_categoria", "categoria": "Aire acondicionado"}
+{"time": "2026-09-26T23:37:42", "user": "U13", "action": "ver_prestador", "prestador": "Frío Total", "rating": 4.8}
+{"time": "2026-09-26T23:37:50", "user": "U13", "action": "solicitar_contacto", "prestador": "Frío Total", "con_mensaje": false}
+{"time": "2026-09-26T23:38:24", "user": "U14", "action": "registro", "email": "sim-20260926-232257-14@serviciosya.test"}
+{"time": "2026-09-26T23:38:28", "user": "U14", "action": "abandona", "donde": "inicio"}
+{"time": "2026-09-26T23:39:01", "user": "U15", "action": "registro", "email": "sim-20260926-232257-15@serviciosya.test"}
+{"time": "2026-09-26T23:39:06", "user": "U15", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:39:11", "user": "U15", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:39:26", "user": "U15", "action": "solicitar_contacto", "prestador": "PC Doctor", "con_mensaje": true}
+{"time": "2026-09-26T23:39:43", "user": "U15", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:40:17", "user": "U16", "action": "registro", "email": "sim-20260926-232257-16@serviciosya.test"}
+{"time": "2026-09-26T23:40:21", "user": "U16", "action": "ver_categoria", "categoria": "Electricista"}
+{"time": "2026-09-26T23:40:27", "user": "U16", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:40:42", "user": "U16", "action": "solicitar_contacto", "prestador": "Luz y Fuerza Martínez", "con_mensaje": true}
+{"time": "2026-09-26T23:41:17", "user": "U17", "action": "registro", "email": "sim-20260926-232257-17@serviciosya.test"}
+{"time": "2026-09-26T23:41:21", "user": "U17", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:41:28", "user": "U17", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:41:36", "user": "U17", "action": "solicitar_contacto", "prestador": "PC Doctor", "con_mensaje": false}
+{"time": "2026-09-26T23:41:53", "user": "U17", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:42:28", "user": "U18", "action": "registro", "email": "sim-20260926-232257-18@serviciosya.test"}
+{"time": "2026-09-26T23:42:32", "user": "U18", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:42:38", "user": "U18", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:42:52", "user": "U18", "action": "solicitar_contacto", "prestador": "Plomería García", "con_mensaje": true}
+{"time": "2026-09-26T23:43:09", "user": "U18", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:43:44", "user": "U19", "action": "registro", "email": "sim-20260926-232257-19@serviciosya.test"}
+{"time": "2026-09-26T23:43:48", "user": "U19", "action": "ver_categoria", "categoria": "Técnico PC"}
+{"time": "2026-09-26T23:43:54", "user": "U19", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:44:01", "user": "U19", "action": "ver_prestador", "prestador": "Soporte IT López", "rating": 4.4}
+{"time": "2026-09-26T23:44:08", "user": "U19", "action": "ver_prestador", "prestador": "Byte Service", "rating": 3.9}
+{"time": "2026-09-26T23:44:16", "user": "U19", "action": "ver_prestador", "prestador": "PC Doctor", "rating": 4.9}
+{"time": "2026-09-26T23:44:31", "user": "U19", "action": "solicitar_contacto", "prestador": "PC Doctor", "con_mensaje": true}
+{"time": "2026-09-26T23:44:47", "user": "U19", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:45:24", "user": "U20", "action": "registro", "email": "sim-20260926-232257-20@serviciosya.test"}
+{"time": "2026-09-26T23:45:28", "user": "U20", "action": "ver_categoria", "categoria": "Aire acondicionado"}
+{"time": "2026-09-26T23:45:35", "user": "U20", "action": "ver_prestador", "prestador": "Frío Total", "rating": 4.8}
+{"time": "2026-09-26T23:45:43", "user": "U20", "action": "ver_prestador", "prestador": "Climatización Sur", "rating": 4.3}
+{"time": "2026-09-26T23:45:50", "user": "U20", "action": "ver_prestador", "prestador": "Aire Express", "rating": 4.0}
+{"time": "2026-09-26T23:45:57", "user": "U20", "action": "ver_prestador", "prestador": "Frío Total", "rating": 4.8}
+{"time": "2026-09-26T23:46:06", "user": "U20", "action": "solicitar_contacto", "prestador": "Frío Total", "con_mensaje": false}
+{"time": "2026-09-26T23:46:22", "user": "U20", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:46:58", "user": "U21", "action": "registro", "email": "sim-20260926-232257-21@serviciosya.test"}
+{"time": "2026-09-26T23:47:00", "user": "U21", "action": "abandona", "donde": "inicio"}
+{"time": "2026-09-26T23:47:36", "user": "U22", "action": "registro", "email": "sim-20260926-232257-22@serviciosya.test"}
+{"time": "2026-09-26T23:47:40", "user": "U22", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:47:46", "user": "U22", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:47:54", "user": "U22", "action": "abandona", "donde": "sin_decidirse"}
+{"time": "2026-09-26T23:48:28", "user": "U23", "action": "registro", "email": "sim-20260926-232257-23@serviciosya.test"}
+{"time": "2026-09-26T23:48:38", "user": "U23", "action": "buscar", "termino": "albanil", "con_resultados": false}
+{"time": "2026-09-26T23:48:53", "user": "U23", "action": "buscar", "termino": "electric", "con_resultados": true}
+{"time": "2026-09-26T23:49:01", "user": "U23", "action": "ver_categoria", "categoria": "Electricista", "desde": "busqueda"}
+{"time": "2026-09-26T23:49:05", "user": "U23", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:49:14", "user": "U23", "action": "solicitar_contacto", "prestador": "Luz y Fuerza Martínez", "con_mensaje": false}
+{"time": "2026-09-26T23:49:31", "user": "U23", "action": "ver_mis_solicitudes"}
+{"time": "2026-09-26T23:50:06", "user": "U24", "action": "registro", "email": "sim-20260926-232257-24@serviciosya.test"}
+{"time": "2026-09-26T23:50:11", "user": "U24", "action": "ver_categoria", "categoria": "Plomero"}
+{"time": "2026-09-26T23:50:16", "user": "U24", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:50:24", "user": "U24", "action": "ver_prestador", "prestador": "Aguas Claras Servicios", "rating": 4.2}
+{"time": "2026-09-26T23:50:32", "user": "U24", "action": "ver_prestador", "prestador": "Plomería García", "rating": 4.6}
+{"time": "2026-09-26T23:50:40", "user": "U24", "action": "solicitar_contacto", "prestador": "Plomería García", "con_mensaje": false}
+{"time": "2026-09-26T23:51:15", "user": "U25", "action": "registro", "email": "sim-20260926-232257-25@serviciosya.test"}
+{"time": "2026-09-26T23:51:19", "user": "U25", "action": "ver_categoria", "categoria": "Electricista"}
+{"time": "2026-09-26T23:51:25", "user": "U25", "action": "ver_prestador", "prestador": "Luz y Fuerza Martínez", "rating": 5}
+{"time": "2026-09-26T23:51:34", "user": "U25", "action": "solicitar_contacto", "prestador": "Luz y Fuerza Martínez", "con_mensaje": false}
+{"time": "2026-09-26T23:51:51", "user": "U25", "action": "ver_mis_solicitudes"}

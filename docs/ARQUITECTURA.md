@@ -128,7 +128,7 @@ flowchart LR
     subgraph CORE["Firebase (actual, ampliado)"]
         direction TB
         AUTH["Authentication<br/>+ rol PROVIDER"]
-        FS[("Cloud Firestore<br/>+ providers.userId<br/>+ reviews")]
+        FS[("Cloud Firestore<br/>+ providers.userId · available<br/>+ reviews · searchMisses")]
         RULES["Security Rules<br/>+ reglas por rol"]
         GA["Google Analytics"]
         RULES --- FS
@@ -159,18 +159,22 @@ flowchart LR
 
 ### Justificación de cada componente
 
-La columna **"Hallazgo que lo motiva"** se completa con los resultados reales ([`RESULTADOS.md`](RESULTADOS.md)). Si un componente no tiene un hallazgo que lo respalde, se posterga.
+Cada componente se justifica con un hallazgo de la [prueba simulada](RESULTADOS.md#4-hallazgos) (H1 a H6). Los que no tienen un hallazgo que los respalde quedan con prioridad baja.
 
 | Componente | Para qué | Hallazgo que lo motiva | Prioridad |
 |---|---|---|---|
-| **Modo prestador** (alta de perfil y bandeja de solicitudes) | Hoy las solicitudes no le llegan a nadie: el catálogo es ficticio. Es la Fase 2 del roadmap; `providers.userId` y `users.role` ya están preparados | _…_ | _…_ |
-| **Cloud Functions** | Reaccionar a una solicitud nueva (notificar, cambiar estados) sin darle a la app permisos de escritura sobre datos ajenos | _…_ | _…_ |
-| **Cloud Messaging (FCM)** | Avisar al prestador de una solicitud nueva y al cliente cuando se la aceptan | _…_ | _…_ |
-| **Reseñas** (colección `reviews`) | Si los usuarios exploran pero no piden contacto, puede faltar confianza | _…_ | _…_ |
-| **Cloud Storage** | Fotos reales de prestadores en lugar de iniciales | _…_ | _…_ |
-| **Crashlytics** | Detectar crashes cuando la app la usen personas fuera del equipo | _…_ | _…_ |
-| **Remote Config + A/B Testing** | Probar variantes (textos del botón, orden de prestadores) y medir cuál convierte más: el siguiente ciclo Build-Measure-Learn | _…_ | _…_ |
-| **App Check** | Que solo la app oficial pueda leer y escribir Firestore | _…_ | _…_ |
+| **Modo prestador** (alta de perfil y bandeja de solicitudes) | Que la solicitud le llegue a alguien y pueda aceptarla o rechazarla. `providers.userId` y `users.role` ya están preparados | **H4**: el 70 % de los que pidieron contacto volvió a mirar su solicitud, pero queda *Pendiente* para siempre | **Alta** |
+| **Cloud Functions** | Al crearse una solicitud, notificar al prestador y manejar los cambios de estado sin darle a la app permisos sobre datos ajenos | **H4** | **Alta** |
+| **Cloud Messaging (FCM)** | Aviso push al prestador (solicitud nueva) y al cliente (solicitud aceptada) | **H4** | **Alta** |
+| **Registro de búsquedas sin resultado** (colección `searchMisses` o parámetro de Analytics) + "avisame cuando haya" | Saber qué servicios pide la gente y todavía no ofrecemos | **H3**: 2 de 4 búsquedas buscaron servicios inexistentes (herrero, albañil) | Media |
+| **Disponibilidad y rotación** en el listado (campo `available` y orden mixto) | Que la demanda no se concentre siempre en el primero | **H2**: 5 de 15 prestadores recibieron el 100 % de las solicitudes | Media |
+| **Reseñas** (colección `reviews`) | Dar confianza para decidir. El rating real reemplaza al del seed | H2 (el rating decide todo el tráfico, así que tiene que ser real) | Media |
+| **Remote Config + A/B Testing** | Probar variantes, como sugerencias de mensaje u orden del listado, y medir cuál convierte más | **H5**: el 50 % de las solicitudes llega sin mensaje | Media |
+| **Crashlytics** | Detectar crashes cuando la usen personas fuera del equipo | Preventivo: la simulación no tuvo crashes | Baja |
+| **Cloud Storage** | Fotos reales de prestadores | Sin evidencia todavía; validar en la prueba con personas | Baja |
+| **App Check** | Que solo la app oficial acceda a Firestore | Preventivo (seguridad) | Baja |
+
+Ya aplicado en esta iteración: **H1**. El teclado tapaba "Solicitar contacto" y se corrigió en la app (manejo de teclado en Compose), sin componentes nuevos.
 
 ## 4. Cómo se relaciona con el ciclo Build-Measure-Learn
 

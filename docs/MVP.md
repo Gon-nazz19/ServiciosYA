@@ -99,5 +99,5 @@ Se definen **antes** de medir, para evaluar los resultados contra un criterio fi
 | Etapa | En este proyecto |
 |---|---|
 | **Build** | App Android (Kotlin, Jetpack Compose) + Firebase Auth, Firestore y Analytics. Código en este repositorio |
-| **Measure** | Prueba con usuarios reales ([`PRUEBA_USUARIOS.md`](PRUEBA_USUARIOS.md)), métricas de Firestore (`tools/metrics`) y eventos de Analytics |
+| **Measure** | Simulación de 25 usuarios que manejan la app real (`tools/simulation`, habilitada por la cátedra), métricas de Firestore (`tools/metrics`) y eventos de Analytics. Protocolo para personas reales en [`PRUEBA_USUARIOS.md`](PRUEBA_USUARIOS.md) |
 | **Learn** | Análisis y decisión de pivotar o perseverar en [`RESULTADOS.md`](RESULTADOS.md). Cambios de arquitectura en [`ARQUITECTURA.md`](ARQUITECTURA.md) |

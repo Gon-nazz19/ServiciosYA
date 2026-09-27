@@ -2,6 +2,8 @@
 
 > Etapa **Measure** del TP2. Resultado: los datos para [`RESULTADOS.md`](RESULTADOS.md).
 
+> **Cómo se hizo en este TP:** la cátedra habilitó reemplazar la prueba con personas por una **simulación de usuarios**. La hicimos con [`tools/simulation`](../tools/simulation/README.md), que maneja la app real en el emulador siguiendo perfiles de comportamiento, con las mismas tareas de esta guía. Esta guía queda como protocolo para repetir la prueba con personas reales en la próxima iteración.
+
 ## Objetivo
 
 Validar la hipótesis del [MVP](MVP.md): *¿las personas usan la app para encontrar un prestador y pedirle contacto?* Además, detectar dónde se traban.

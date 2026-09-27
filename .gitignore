@@ -22,3 +22,5 @@ firebase-debug.log
 firestore-debug.log
 /tools/metrics/node_modules
 /tools/metrics/resultados-*.md
+/tools/simulation/runs/*/analytics.log
+__pycache__/
