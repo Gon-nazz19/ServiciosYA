@@ -76,14 +76,13 @@ class HomeViewModel(
                         )
                     }
                 }
-                .onFailure { error ->
+                .onFailure {
                     categories = emptyList()
                     _uiState.update {
                         it.copy(
                             categories = emptyList(),
                             isLoading = false,
-                            errorMessage = error.localizedMessage
-                                ?: "No pudimos cargar las categorías.",
+                            errorMessage = LOAD_CATEGORIES_ERROR_MESSAGE,
                         )
                     }
                 }
@@ -155,6 +154,8 @@ class HomeViewModel(
     companion object {
         const val SEARCH_TRACKING_DEBOUNCE_MS = 800L
         const val MIN_TRACKED_QUERY_LENGTH = 2
+        const val LOAD_CATEGORIES_ERROR_MESSAGE =
+            "No pudimos cargar las categorías. Revisá tu conexión e intentá nuevamente."
     }
 }
 

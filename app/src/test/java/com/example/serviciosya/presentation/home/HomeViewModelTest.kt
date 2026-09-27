@@ -72,7 +72,7 @@ class HomeViewModelTest {
         categoryRepository.categoriesResult = Result.failure(RuntimeException("Sin conexión"))
         val viewModel = createViewModel()
         advanceUntilIdle()
-        assertEquals("Sin conexión", viewModel.uiState.value.errorMessage)
+        assertEquals(HomeViewModel.LOAD_CATEGORIES_ERROR_MESSAGE, viewModel.uiState.value.errorMessage)
 
         categoryRepository.categoriesResult = categories
         viewModel.loadCategories()

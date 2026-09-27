@@ -39,7 +39,7 @@ class FirebaseAuthRepository(
         name: String,
         email: String,
         password: String,
-    ): Result<Unit> = runCatching {
+    ): Result<Unit> = authCall {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         val firebaseUser = requireNotNull(result.user) { "No se pudo crear el usuario." }
         firebaseUser.updateProfile(
@@ -56,12 +56,12 @@ class FirebaseAuthRepository(
         Unit
     }
 
-    override suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
+    override suspend fun signIn(email: String, password: String): Result<Unit> = authCall {
         auth.signInWithEmailAndPassword(email, password).await()
         Unit
     }
 
-    override suspend fun signOut(): Result<Unit> = runCatching {
+    override suspend fun signOut(): Result<Unit> = authCall {
         auth.signOut()
     }
 
