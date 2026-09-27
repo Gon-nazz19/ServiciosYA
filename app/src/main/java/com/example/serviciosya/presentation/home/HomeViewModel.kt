@@ -98,6 +98,13 @@ class HomeViewModel(
         if (query.isNotBlank()) loadProvidersIfNeeded()
     }
 
+    /** Clears the search box and results, e.g. when another user signs in. */
+    fun resetSearch() {
+        searchTrackingJob?.cancel()
+        lastTrackedQuery = null
+        _uiState.update { it.copy(search = HomeSearchState()) }
+    }
+
     private fun loadProvidersIfNeeded() {
         if (providers != null || providersJob?.isActive == true) return
         providersJob = viewModelScope.launch {

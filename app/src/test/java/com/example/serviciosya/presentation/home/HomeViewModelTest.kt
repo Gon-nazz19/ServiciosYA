@@ -213,4 +213,32 @@ class HomeViewModelTest {
 
         assertEquals(1, analytics.eventsNamed(AnalyticsEvents.SERVICE_SEARCH).size)
     }
+
+    @Test
+    fun `reset search clears query results and pending tracking`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onSearchQueryChange("plomero")
+        runCurrent()
+
+        viewModel.resetSearch()
+        advanceUntilIdle()
+
+        assertEquals(HomeSearchState(), viewModel.uiState.value.search)
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.SERVICE_SEARCH).isEmpty())
+    }
+
+    @Test
+    fun `same query is tracked again after a reset`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onSearchQueryChange("plomero")
+        advanceUntilIdle()
+
+        viewModel.resetSearch()
+        viewModel.onSearchQueryChange("plomero")
+        advanceUntilIdle()
+
+        assertEquals(2, analytics.eventsNamed(AnalyticsEvents.SERVICE_SEARCH).size)
+    }
 }

@@ -65,6 +65,10 @@ fun AppNavigation(
                 popUpTo(navController.graph.id) { inclusive = true }
                 launchSingleTop = true
             }
+            // Tabs saved with saveState keep their ViewModels (e.g. the previous user's requests);
+            // drop them so a new session never restores another user's data.
+            TopLevelDestination.entries.forEach { navController.clearBackStack(it.route) }
+            homeViewModel.resetSearch()
         }
     }
 
@@ -189,15 +193,19 @@ fun AppNavigation(
                 )
             }
             composable(Routes.REQUESTS) {
-                val requestsViewModel: RequestsViewModel = viewModel(
-                    factory = RequestsViewModelFactory(container.serviceRequestRepository),
-                )
-                val requestsState by requestsViewModel.uiState.collectAsStateWithLifecycle()
-                LaunchedEffect(Unit) { requestsViewModel.loadRequests() }
-                RequestsScreen(
-                    uiState = requestsState,
-                    onRetry = requestsViewModel::loadRequests,
-                )
+                authState.user?.let { user ->
+                    // Keyed by user so a restored tab can never show another account's requests.
+                    val requestsViewModel: RequestsViewModel = viewModel(
+                        key = "requests-${user.id}",
+                        factory = RequestsViewModelFactory(container.serviceRequestRepository),
+                    )
+                    val requestsState by requestsViewModel.uiState.collectAsStateWithLifecycle()
+                    LaunchedEffect(Unit) { requestsViewModel.loadRequests() }
+                    RequestsScreen(
+                        uiState = requestsState,
+                        onRetry = requestsViewModel::loadRequests,
+                    )
+                }
             }
             composable(Routes.PROFILE) {
                 authState.user?.let { user ->
