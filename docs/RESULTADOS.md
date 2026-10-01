@@ -91,8 +91,6 @@ Generadas con `python tools/simulation/analyze.py`:
 | `contact_request` | 20 | 20 ✅ |
 | `service_search` | 4 | 4 ✅ |
 
-> _Capturas de Google Analytics: agregar acá **Informes → Tiempo real** y, 24 a 48 horas después, **Informes → Participación → Eventos**._
-
 ## 4. Hallazgos
 
 | # | Hallazgo | Evidencia | Qué hicimos o proponemos |

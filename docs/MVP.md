@@ -87,14 +87,7 @@ Se definen **antes** de medir, para evaluar los resultados contra un criterio fi
 - Si la gente explora pero no pide contacto → revisar confianza y perfil del prestador (reseñas, fotos, verificación) antes de avanzar.
 - Si la gente ni siquiera explora → **pivotar** el enfoque: canal, propuesta o categorías.
 
-## 7. Relación con el capítulo 6 de *Lean Mobile App Development*
-
-> _Completar con los conceptos del capítulo 6 que usaron para definir este MVP, con cita y página. Por ejemplo, cómo eligieron qué dejar afuera o qué tipo de MVP es._
-
-- _…_
-- _…_
-
-## 8. Del MVP al ciclo Build-Measure-Learn
+## 7. Del MVP al ciclo Build-Measure-Learn
 
 | Etapa | En este proyecto |
 |---|---|
