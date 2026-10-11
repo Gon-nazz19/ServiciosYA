@@ -1,6 +1,7 @@
 package com.example.serviciosya.data
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.example.serviciosya.data.repository.FirebaseAuthRepository
 import com.example.serviciosya.data.repository.FirestoreCategoryRepository
 import com.example.serviciosya.data.repository.FirestoreProviderRepository
@@ -37,7 +38,12 @@ class FirebaseRepositoriesTest {
     private val authRepository = FirebaseAuthRepository(auth, firestore)
     private val categoryRepository = FirestoreCategoryRepository(firestore)
     private val providerRepository = FirestoreProviderRepository(firestore)
-    private val requestRepository = FirestoreServiceRequestRepository(firestore, auth)
+    private val requestRepository = FirestoreServiceRequestRepository(
+        InstrumentationRegistry.getInstrumentation().targetContext,
+        firestore,
+        auth,
+        FirebaseEmulator.functions,
+    )
 
     @Before
     fun setUp() {
@@ -189,7 +195,9 @@ class FirebaseRepositoriesTest {
     fun createdRequestIsPendingAndListedForItsOwner() = runBlocking {
         registerAndSignIn("Ana", "ana@example.com")
 
-        requestRepository.createRequest(newRequest()).getOrThrow()
+        requestRepository.createRequest(
+            newRequest().copy(providerName = "Nombre falso", categoryName = "Categoría falsa"),
+        ).getOrThrow()
         val requests = requestRepository.getMyRequests().getOrThrow()
 
         val request = requests.single()
@@ -217,10 +225,18 @@ class FirebaseRepositoriesTest {
     }
 
     @Test
-    fun requestForUnknownProviderIsRejectedByRules() = runBlocking {
+    fun requestForUnknownProviderIsRejectedByFunction() = runBlocking {
         registerAndSignIn("Ana", "ana@example.com")
 
         assertTrue(requestRepository.createRequest(newRequest(providerId = "no-existe")).isFailure)
+        assertTrue(requestRepository.getMyRequests().getOrThrow().isEmpty())
+    }
+
+    @Test
+    fun requestForInactiveProviderIsRejectedByFunction() = runBlocking {
+        registerAndSignIn("Ana", "ana@example.com")
+
+        assertTrue(requestRepository.createRequest(newRequest(providerId = "inactivo")).isFailure)
         assertTrue(requestRepository.getMyRequests().getOrThrow().isEmpty())
     }
 

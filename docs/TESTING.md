@@ -1,11 +1,13 @@
 # Testing — ServiciosYa
 
-El proyecto tiene cuatro niveles de prueba (EPIC 15).
+El proyecto tiene seis niveles de prueba (EPIC 15 y TP3).
 
 | Nivel | Qué cubre | Cómo se corre | Toca Firebase real |
 |---|---|---|---|
 | Unit tests (US-150) | ViewModels, casos de uso, validaciones, mapeos y navegación | `./gradlew testDebugUnitTest` | No |
 | Reglas de Firestore (EPIC 13) | `firestore.rules`: qué puede leer y escribir cada usuario | `cd tools/firestore-rules && npm test` | No (emulador) |
+| Callable (TP3) | Validación, autorización, creación e idempotencia | `cd functions && npm test` | No (emuladores) |
+| Escalabilidad local (TP3) | Balanceo, redundancia, autoescalado y carga | [Laboratorio Docker](../tools/scaling-lab/README.md) | No |
 | Repositorios (US-151) | Repositorios reales de Auth y Firestore, con las reglas cargadas | `cd tools/firestore-rules && npm run test:android` | No (emulador, proyecto `demo-`) |
 | Prueba manual (US-152) | Flujo completo en la app | Checklist de abajo | Sí |
 
@@ -16,10 +18,10 @@ El proyecto tiene cuatro niveles de prueba (EPIC 15).
   export JAVA_HOME="$HOME/.jdks/jdk-21.0.12.1+1"      # Git Bash
   $env:JAVA_HOME = "$env:USERPROFILE\.jdks\jdk-21.0.12.1+1"  # PowerShell
   ```
-- **Node.js 22 o superior**, y `npm install` dentro de `tools/firestore-rules`.
+- **Node.js 22 o superior**, y `npm ci` dentro de `functions/` y `tools/firestore-rules/`.
 - Para `test:android`: **un emulador de Android encendido**. La app se reinstala y se desinstala sola durante el test, así que después hay que volver a instalarla con *Run* o con `./gradlew installDebug`.
 
-Los tests de reglas y de repositorios levantan solos los emuladores de Firebase (Firestore :8080 y Auth :9099) con el proyecto `demo-serviciosya`, que no puede conectarse a producción.
+Los tests de reglas y de repositorios levantan solos los emuladores de Firebase (Firestore :8081, Auth :9099 y Functions :5001) con el proyecto `demo-serviciosya`, que no puede conectarse a producción.
 
 ---
 

@@ -118,6 +118,7 @@ ServiciosYA/
 |---|---|---|
 | Unitarios | ViewModels, casos de uso, validaciones, mapeos y navegación | `./gradlew testDebugUnitTest` |
 | Reglas de Firestore | Qué puede leer y escribir cada usuario | `cd tools/firestore-rules && npm test` |
+| Escalabilidad local TP3 | Balanceo, redundancia, autoescalado y carga sin Firebase | [Laboratorio Docker](tools/scaling-lab/README.md) |
 | Repositorios | Repositorios reales contra los emuladores de Auth y Firestore | `cd tools/firestore-rules && npm run test:android` |
 | Manual | Flujo completo en la app | Checklist en [`docs/TESTING.md`](docs/TESTING.md) |
 

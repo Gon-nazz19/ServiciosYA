@@ -20,6 +20,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 
 class AppContainer(context: Context) {
     private val isFirebaseConfigured = FirebaseApp.getApps(context).isNotEmpty()
@@ -47,8 +48,10 @@ class AppContainer(context: Context) {
 
     val serviceRequestRepository: ServiceRequestRepository = if (isFirebaseConfigured) {
         FirestoreServiceRequestRepository(
+            context = context,
             firestore = FirebaseFirestore.getInstance(),
             auth = FirebaseAuth.getInstance(),
+            functions = FirebaseFunctions.getInstance("southamerica-east1"),
         )
     } else {
         UnavailableServiceRequestRepository()

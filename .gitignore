@@ -22,6 +22,9 @@ local.properties
 firebase-debug.log
 firestore-debug.log
 /tools/metrics/node_modules
+/functions/node_modules
+/functions/lib
+/functions/.npm-cache
 /tools/metrics/resultados-*.md
 /tools/simulation/runs/*/analytics.log
 __pycache__/

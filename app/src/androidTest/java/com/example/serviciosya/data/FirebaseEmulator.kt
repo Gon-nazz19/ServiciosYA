@@ -7,18 +7,20 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.firestoreSettings
 import com.google.firebase.firestore.memoryCacheSettings
+import com.google.firebase.functions.FirebaseFunctions
 import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * Connects to the local Firebase emulators (Firestore :8080, Auth :9099) through a separate
+ * Connects to the local Firebase emulators (Firestore :8081, Auth :9099) through a separate
  * FirebaseApp with a "demo-" project id, so these tests can never reach the real project.
  */
 object FirebaseEmulator {
     const val PROJECT_ID = "demo-serviciosya"
     private const val HOST = "10.0.2.2" // Host machine as seen from the Android emulator.
-    private const val FIRESTORE_PORT = 8080
+    private const val FIRESTORE_PORT = 8081
     private const val AUTH_PORT = 9099
+    private const val FUNCTIONS_PORT = 5001
     private const val APP_NAME = "emulator-tests"
 
     val app: FirebaseApp by lazy {
@@ -44,6 +46,10 @@ object FirebaseEmulator {
             useEmulator(HOST, FIRESTORE_PORT)
             firestoreSettings = firestoreSettings { setLocalCacheSettings(memoryCacheSettings { }) }
         }
+    }
+
+    val functions: FirebaseFunctions by lazy {
+        FirebaseFunctions.getInstance(app, "southamerica-east1").apply { useEmulator(HOST, FUNCTIONS_PORT) }
     }
 
     /** Deletes every document and every user in the emulators. */

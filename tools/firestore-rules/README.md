@@ -6,7 +6,7 @@ Las reglas viven en [`firestore.rules`](../../firestore.rules), en la raíz del 
 |---|---|---|
 | `categories` | usuarios autenticados | nadie desde la app (solo el seed) |
 | `providers` | usuarios autenticados | nadie desde la app (solo el seed) |
-| `serviceRequests` | solo el cliente que la creó | crear: el propio usuario, en `PENDING`, con un prestador existente y un mensaje de 500 caracteres como máximo. No se puede editar ni borrar |
+| `serviceRequests` | solo el cliente que la creó | nadie desde la app; `createServiceRequest` crea con Admin SDK. No se puede editar ni borrar |
 | `users` | solo el propio usuario | crear: su propio perfil con `role: CLIENT`. No se puede editar ni borrar |
 | cualquier otra | nadie | nadie |
 
@@ -26,7 +26,7 @@ npm test
 
 ## Tests de repositorios en Android (US-151)
 
-Corren los repositorios reales de la app (`FirebaseAuthRepository`, `Firestore*Repository`) en el emulador de Android, contra los emuladores de Firestore y Auth con estas mismas reglas. Hace falta un emulador de Android encendido:
+Corren los repositorios reales de la app (`FirebaseAuthRepository`, `Firestore*Repository`) en el emulador de Android, contra los emuladores de Firestore, Auth y Functions con estas mismas reglas. Hace falta un emulador de Android encendido y las dependencias de `functions/` instaladas:
 
 ```bash
 npm run test:android

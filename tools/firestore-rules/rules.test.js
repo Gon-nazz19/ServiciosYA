@@ -62,7 +62,7 @@ before(async () => {
     firestore: {
       rules: readFileSync(path.join(__dirname, '..', '..', 'firestore.rules'), 'utf8'),
       host: '127.0.0.1',
-      port: 8080,
+      port: 8081,
     },
   });
 });
@@ -125,12 +125,8 @@ describe('providers', () => {
 });
 
 describe('serviceRequests', () => {
-  test('a signed-in user can create their own pending request', async () => {
-    await assertSucceeds(addDoc(collection(signedIn(ALICE), 'serviceRequests'), newRequest(ALICE)));
-  });
-
-  test('a request with an empty message is allowed', async () => {
-    await assertSucceeds(addDoc(collection(signedIn(ALICE), 'serviceRequests'), newRequest(ALICE, { message: '' })));
+  test('a signed-in user cannot create a request directly, even with a valid payload', async () => {
+    await assertFails(addDoc(collection(signedIn(ALICE), 'serviceRequests'), newRequest(ALICE)));
   });
 
   test('anonymous users cannot create requests', async () => {
@@ -141,20 +137,20 @@ describe('serviceRequests', () => {
     await assertFails(addDoc(collection(signedIn(ALICE), 'serviceRequests'), newRequest(BOB)));
   });
 
-  test('new requests must be PENDING with server timestamp', async () => {
+  test('changing status or timestamp does not allow direct creation', async () => {
     const db = signedIn(ALICE);
     await assertFails(addDoc(collection(db, 'serviceRequests'), newRequest(ALICE, { status: 'ACCEPTED' })));
     await assertFails(addDoc(collection(db, 'serviceRequests'), newRequest(ALICE, { createdAt: new Date(2020, 0, 1) })));
   });
 
-  test('requests must point to an existing provider', async () => {
+  test('a direct request cannot point to an unknown provider', async () => {
     await assertFails(addDoc(
       collection(signedIn(ALICE), 'serviceRequests'),
       newRequest(ALICE, { providerId: 'no-existe' }),
     ));
   });
 
-  test('messages over 500 characters and unknown fields are rejected', async () => {
+  test('other payloads cannot bypass the callable', async () => {
     const db = signedIn(ALICE);
     await assertFails(addDoc(collection(db, 'serviceRequests'), newRequest(ALICE, { message: 'a'.repeat(501) })));
     await assertFails(addDoc(collection(db, 'serviceRequests'), newRequest(ALICE, { price: 1000 })));
