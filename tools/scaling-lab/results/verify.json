@@ -1,0 +1,28 @@
+{
+  "before": {
+    "concurrency": 15,
+    "requests": 90,
+    "successes": 90,
+    "errors": 0,
+    "instances": {
+      "166c450f317a": 42,
+      "89a54b29e229": 24,
+      "9e76a0c7a2da": 24
+    },
+    "latency_avg_ms": 359.1,
+    "latency_p95_ms": 653.9
+  },
+  "stopped_container": "166c450f317a",
+  "after": {
+    "concurrency": 15,
+    "requests": 90,
+    "successes": 90,
+    "errors": 0,
+    "instances": {
+      "89a54b29e229": 40,
+      "9e76a0c7a2da": 50
+    },
+    "latency_avg_ms": 266.0,
+    "latency_p95_ms": 274.5
+  }
+}

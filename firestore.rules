@@ -43,22 +43,8 @@ service cloud.firestore {
       // by clientId == auth.uid, which is what "Mis solicitudes" does.
       allow read: if isSignedIn() && resource.data.clientId == request.auth.uid;
 
-      allow create: if isSignedIn()
-        && request.resource.data.keys().hasAll([
-          'clientId', 'providerId', 'categoryId', 'message', 'status', 'createdAt'
-        ])
-        && request.resource.data.keys().hasOnly([
-          'clientId', 'providerId', 'categoryId', 'providerName', 'categoryName',
-          'message', 'status', 'createdAt'
-        ])
-        && request.resource.data.clientId == request.auth.uid
-        && request.resource.data.status == 'PENDING'
-        && request.resource.data.createdAt == request.time
-        && request.resource.data.message is string
-        && request.resource.data.message.size() <= 500
-        && request.resource.data.providerId is string
-        && request.resource.data.categoryId is string
-        && exists(/databases/$(database)/documents/providers/$(request.resource.data.providerId));
+      // The callable validates and creates requests with the Admin SDK.
+      allow create: if false;
 
       // Status changes belong to a future provider/admin flow, not to the MVP client app.
       allow update, delete: if false;

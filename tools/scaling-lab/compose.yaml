@@ -1,0 +1,31 @@
+name: serviciosya-tp3
+
+services:
+  backend:
+    build: ./backend
+    environment:
+      WORK_MS: "250"
+    networks: [lab]
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "127.0.0.1:8088:80"
+    depends_on: [backend]
+    networks: [lab]
+
+  k6:
+    image: grafana/k6:0.58.0
+    profiles: [load]
+    volumes:
+      - ./load.js:/scripts/load.js:ro
+      - ./results:/results
+    environment:
+      TARGET_URL: http://nginx/request
+    depends_on: [nginx]
+    networks: [lab]
+
+networks:
+  lab: {}

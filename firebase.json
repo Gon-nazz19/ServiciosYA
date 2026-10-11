@@ -1,13 +1,20 @@
 {
+  "functions": {
+    "source": "functions",
+    "predeploy": "npm --prefix functions run build"
+  },
   "firestore": {
     "rules": "firestore.rules"
   },
   "emulators": {
     "firestore": {
-      "port": 8080
+      "port": 8081
     },
     "auth": {
       "port": 9099
+    },
+    "functions": {
+      "port": 5001
     },
     "ui": {
       "enabled": false
