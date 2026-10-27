@@ -110,7 +110,7 @@ ServiciosYA/
    git clone https://github.com/Gon-nazz19/ServiciosYA.git
    ```
 2. Conectar la app a un proyecto de Firebase y colocar `app/google-services.json` (ver [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md)). Este archivo no está en el repositorio. Sin él la app compila, pero muestra un aviso de que no está configurada.
-3. *(Opcional)* Configurar la key de Google Maps para ver el mapa en el perfil del prestador. Sin key, la app compila y oculta el mapa, pero el botón "Cómo llegar" sigue funcionando.
+3. *(Opcional)* Configurar la key de Google Maps para ver el mapa en el perfil del prestador. Google exige verificar una tarjeta para habilitar Maps Platform, aunque el uso sea gratuito. Sin key, la app compila y oculta el mapa, pero "Cómo llegar", las distancias y el orden por cercanía siguen funcionando.
    1. En [Google Cloud Console](https://console.cloud.google.com/), elegir el proyecto de Firebase y habilitar **Maps SDK for Android** en *APIs y servicios → Biblioteca*.
    2. En *APIs y servicios → Credenciales*, crear una **clave de API** y restringirla a *Apps para Android*, con el paquete `com.example.serviciosya` y el SHA-1 del certificado de debug (`./gradlew signingReport`). En *Restricciones de API*, dejar solo Maps SDK for Android.
    3. Agregar la clave a `local.properties`, que no se sube a Git:
