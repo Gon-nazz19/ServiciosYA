@@ -4,7 +4,7 @@
 
 ServiciosYA ya usaba Firebase Authentication, Cloud Firestore, Google Analytics, Cloud Functions y el Admin SDK. En este TP sumamos tres integraciones nuevas, cada una elegida para atacar un hallazgo de la [prueba del TP2](RESULTADOS.md#4-hallazgos):
 
-1. **Ubicación y mapa:** Google Play Services Location y Maps Compose.
+1. **Ubicación:** Google Play Services Location, para mostrar la distancia y ordenar por cercanía.
 2. **Contacto directo:** WhatsApp (`wa.me`), llamada y compartir, con Intents de Android.
 3. **Asistente con IA:** Gemini a través de Firebase AI Logic.
 
@@ -12,35 +12,35 @@ ServiciosYA ya usaba Firebase Authentication, Cloud Firestore, Google Analytics,
 
 ### Beneficios para ServiciosYA
 
-- **Velocidad de desarrollo.** Las tres funcionalidades se implementaron en pocos días. Construir un servicio de mapas, un motor de ubicación o un modelo de lenguaje propio no es viable para un equipo de dos personas.
-- **Funcionalidades que no conviene construir.** Los mapas y la IA son problemas resueltos por proveedores especializados, con calidad, cobertura y mantenimiento que no podríamos igualar. El equipo se concentra en lo propio: el catálogo de prestadores y el flujo de contacto.
+- **Velocidad de desarrollo.** Las tres funcionalidades se implementaron en pocos días. Construir un motor de ubicación o un modelo de lenguaje propio no es viable para un equipo de dos personas.
+- **Funcionalidades que no conviene construir.** La ubicación y la IA son problemas resueltos por proveedores especializados, con calidad, cobertura y mantenimiento que no podríamos igualar. El equipo se concentra en lo propio: el catálogo de prestadores y el flujo de contacto.
 - **Aprovechar apps que el usuario ya usa.** En Argentina, contactar a alguien es escribirle por WhatsApp. En vez de construir un chat propio, la app abre WhatsApp con el mensaje ya escrito. El usuario no aprende nada nuevo y el prestador recibe el pedido donde ya trabaja.
-- **Escalabilidad y disponibilidad heredadas.** Firebase AI Logic, Play Services y Maps Platform escalan solos, igual que Firestore en el TP3.
+- **Escalabilidad y disponibilidad heredadas.** Firebase AI Logic y Play Services escalan solos, igual que Firestore en el TP3.
 
 ### Desafíos y cómo los mitigamos
 
 | Desafío | Cómo aparece en ServiciosYA | Mitigación |
 |---|---|---|
 | **Permisos y privacidad** | La ubicación es un dato sensible. El texto que se envía a la IA puede contener datos personales | Solo se pide ubicación **aproximada** (`ACCESS_COARSE_LOCATION`), con un aviso previo y la opción "Ahora no". La distancia se calcula en el teléfono y a Analytics solo llega un rango (`1-3km`). A Gemini se envía solo el texto del problema y la lista de categorías: nunca el nombre, el email ni el uid |
-| **API keys y facturación** | Maps necesita una key, que podría usarse desde otra app y generar costos | La key vive en `local.properties` (fuera de Git) y se restringe al paquete y al SHA-1 de la app. Gemini Developer API no requiere el plan Blaze. **Maps Platform, en cambio, exige verificar una tarjeta** aunque el uso entre en la cuota gratuita. Como el equipo no tiene tarjeta, la key no se creó y la app usa el *fallback*: oculta el mapa y mantiene "Cómo llegar" |
+| **Credenciales y costos** | Un servicio de IA pago podría generar costos o exponer una clave dentro del APK | Firebase AI Logic usa la configuración del proyecto de Firebase, así que la app no guarda ninguna clave propia. Se usa Gemini Developer API, que funciona en el plan gratuito (Spark) |
 | **Dependencia de proveedores** | Si cambia la API de un proveedor o se retira un modelo, la app se rompe | Cada SDK está detrás de una **interfaz del dominio** (`LocationProvider`, `ContactLauncher`, `ServiceAssistant`). Cambiar de proveedor es escribir otra clase en `data/` sin tocar ViewModels ni pantallas. El nombre del modelo está en una constante |
 | **Respuestas no deterministas de la IA** | Gemini puede devolver una categoría que no existe, un JSON mal formado o un mensaje demasiado largo | Salida estructurada con `responseSchema`, parseo defensivo y `AnalyzeProblemUseCase`, que descarta categorías inexistentes o inactivas y recorta el mensaje a 500 caracteres |
-| **Tamaño del APK** | Cada SDK suma peso | Se usaron solo los módulos necesarios (`play-services-location`, `maps-compose`, `firebase-ai`). El contacto directo no agrega ninguna dependencia |
-| **Sin conexión, sin permiso o sin configuración** | El usuario puede rechazar el permiso, no tener Play Services, o el proyecto puede no tener AI Logic habilitado | Cada integración tiene un *fallback*: `NoOpLocationProvider`, `UnavailableServiceAssistant` y el mapa oculto sin key. La app sigue funcionando como antes, solo sin la funcionalidad nueva |
+| **Tamaño del APK** | Cada SDK suma peso | Se usaron solo los módulos necesarios (`play-services-location` y `firebase-ai`). El contacto directo no agrega ninguna dependencia |
+| **Sin conexión, sin permiso o sin configuración** | El usuario puede rechazar el permiso, no tener Play Services, o el proyecto puede no tener AI Logic habilitado | Cada integración tiene un *fallback*: `NoOpLocationProvider` y `UnavailableServiceAssistant`. La app sigue funcionando como antes, solo sin la funcionalidad nueva |
 
-La decisión de arquitectura que hace posible todo esto es la misma del TP2: **la UI nunca usa un SDK directamente.** La única excepción es el mapa, porque `GoogleMap` es un componente visual de Compose.
+La decisión de arquitectura que hace posible todo esto es la misma del TP2: **la UI nunca usa un SDK directamente.**
 
 ## 2. Selección y justificación
 
 | # | Integración | Tipo | Funcionalidad nueva | Hallazgo del TP2 |
 |---|---|---|---|---|
-| 1 | **Play Services Location + Maps Compose** | SDK | Distancia a cada prestador ("a 2,3 km"), listado ordenado por cercanía, mapa en el perfil y botón "Cómo llegar" | **H2**: 5 de 15 prestadores recibieron todas las solicitudes. Ordenar por cercanía reparte la demanda |
+| 1 | **Google Play Services Location** | SDK | Distancia a cada prestador ("a 2,3 km"), listado ordenado por cercanía y botón "Cómo llegar" | **H2**: 5 de 15 prestadores recibieron todas las solicitudes. Ordenar por cercanía reparte la demanda |
 | 2 | **Contacto directo: WhatsApp (`wa.me`), llamada y compartir** | API pública de WhatsApp + Intents de Android | Botones "WhatsApp" con el mensaje ya escrito, "Llamar" y "Compartir" | **H4**: la solicitud quedaba *Pendiente* para siempre porque nadie la recibía |
 | 3 | **Gemini con Firebase AI Logic** | SDK | El usuario describe su problema, la app sugiere la categoría y redacta el mensaje | **H5**: el 50 % de las solicitudes llegó sin mensaje. **H3**: búsquedas de servicios que no existen (herrero, albañil) |
 
 Por qué estas tres y no otras:
 
-- **Sin costo y sin plan Blaze.** El proyecto no tiene tarjeta asociada (por eso el TP3 se desplegó en Azure for Students). Gemini Developer API funciona en el plan Spark, la ubicación de Play Services y los Intents no cuestan nada. El mapa embebido es la única parte que necesita una cuenta de facturación de Google Cloud. Por eso quedó como opcional y la app funciona completa sin él.
+- **Sin costo y sin plan Blaze.** El proyecto no tiene tarjeta asociada (por eso el TP3 se desplegó en Azure for Students). Gemini Developer API funciona en el plan Spark, y la ubicación de Play Services y los Intents no cuestan nada.
 - **Cada una ataca un hallazgo medido**, no una idea suelta.
 - **Trabajan juntas.** El asistente elige la categoría, el listado ordena por cercanía y WhatsApp lleva el mensaje redactado al prestador ([diagrama de secuencia](ARQUITECTURA.md#62-flujo-del-asistente-las-tres-integraciones-juntas)).
 
@@ -94,7 +94,7 @@ ContactLinkBuilder.whatsAppUrl("5493564400101", "Hola Carlos, te encontré en Se
 
 **Decisión: tocar WhatsApp no crea una solicitud.** "Solicitar contacto" sigue siendo el registro en "Mis solicitudes" y en el embudo. WhatsApp, llamar y compartir se miden aparte con `contact_channel`, así cada canal se cuenta una sola vez y se puede comparar cuál usa la gente. Si el grupo decide lo contrario, alcanza con llamar a `requestContact` desde `contactByWhatsApp`.
 
-### 3.2 Ubicación y mapa
+### 3.2 Ubicación
 
 | Capa | Archivos |
 |---|---|
@@ -102,8 +102,8 @@ ContactLinkBuilder.whatsAppUrl("5493564400101", "Hola Carlos, te encontré en Se
 | Modelo | `Provider` y `ProviderDto` con `latitude: Double?` y `longitude: Double?`. Son nullable, así un prestador sin coordenadas no rompe la app |
 | Dominio | `domain/model/GeoPoint.kt`, `domain/location/LocationProvider.kt` (interfaz), `domain/location/DistanceCalculator.kt` (haversine, orden, formato y rangos) |
 | Datos | `data/location/FusedLocationProvider.kt`, `data/location/NoOpLocationProvider.kt` |
-| Presentación | `ProvidersViewModel` y `ProvidersScreen` (aviso, permiso, distancia y orden). `ProviderDetailScreen` (mapa y "Cómo llegar") |
-| Configuración | `ACCESS_COARSE_LOCATION` y la key de Maps en `AndroidManifest.xml`. `MAPS_API_KEY` y `HAS_MAPS_KEY` en `app/build.gradle.kts` |
+| Presentación | `ProvidersViewModel` y `ProvidersScreen` (aviso, permiso, distancia y orden). `ProviderDetailScreen` (distancia y "Cómo llegar") |
+| Configuración | Permiso `ACCESS_COARSE_LOCATION` en `AndroidManifest.xml` |
 | Analytics | Evento `location_permission_result` con `granted`, y `distance_bucket` en `provider_view` |
 
 La distancia se calcula en el dominio con la fórmula de haversine. El listado se ordena de más cerca a más lejos, y los prestadores sin coordenadas van al final:
@@ -123,20 +123,12 @@ distanceBucket(2.34)  // "1-3km": lo único que llega a Analytics
 
 En el listado, si no hay permiso aparece la tarjeta "Activá la ubicación para ver los prestadores más cerca tuyo", con "Activar" y "Ahora no". Si el usuario rechaza el permiso, la app funciona igual que antes, sin distancias.
 
-El perfil muestra un `GoogleMap` de 180 dp con un marcador. Los gestos de desplazamiento están desactivados para que no compitan con el scroll de la pantalla. La key se lee de `local.properties`:
+El perfil muestra la distancia y el botón "Cómo llegar", que abre la app de mapas del teléfono en la ubicación del prestador con un Intent `geo:`:
 
 ```kotlin
-val mapsApiKey: String = rootProject.file("local.properties")
-    .takeIf { it.exists() }
-    ?.let { file -> Properties().apply { file.inputStream().use(::load) } }
-    ?.getProperty("MAPS_API_KEY")
-    .orEmpty()
-// ...
-manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
-buildConfigField("boolean", "HAS_MAPS_KEY", mapsApiKey.isNotBlank().toString())
+ContactLinkBuilder.directionsUri(GeoPoint(-31.4268, -62.0849), "Plomería García")
+// geo:-31.4268,-62.0849?q=-31.4268,-62.0849(Plomer%C3%ADa%20Garc%C3%ADa)
 ```
-
-Sin key, `HAS_MAPS_KEY` es `false` y el mapa no se muestra. El botón "Cómo llegar" funciona igual, porque abre la app de mapas con un Intent `geo:`.
 
 ### 3.3 Asistente con Gemini (Firebase AI Logic)
 
@@ -215,7 +207,7 @@ Se agregaron **60 tests** (de 77 a 137), todos con *fakes* en `app/src/test/.../
 ./gradlew testDebugUnitTest   # 137 tests, 0 fallos
 ```
 
-También se verificó que la app compile **sin** `google-services.json` y **sin** `MAPS_API_KEY`. En ese caso usa los *fallbacks*: no muestra el mapa y el asistente indica elegir la categoría manualmente.
+También se verificó que la app compile **sin** `google-services.json`. En ese caso usa los *fallbacks*: el asistente indica elegir la categoría manualmente y la app sigue funcionando.
 
 ### 4.2 Prueba manual
 
@@ -225,7 +217,7 @@ Antes de la prueba hay que completar la configuración de la [sección 5](#5-con
 |---|---|---|---|
 | 1 | Abrir una categoría sin permiso y tocar "Activar" → **Permitir** | El listado se ordena por cercanía y muestra "a X km" | `docs/screenshots/tp7-01-distancias.png` |
 | 2 | Repetir y elegir **No permitir** | El listado se ve como antes, sin distancias ni errores | `docs/screenshots/tp7-02-permiso-rechazado.png` |
-| 3 | Abrir un prestador y tocar "Cómo llegar" | Perfil con la distancia. Sin key de Maps no muestra el mapa embebido, y "Cómo llegar" abre la app de mapas en la ubicación del prestador | `docs/screenshots/tp7-03-como-llegar.png` |
+| 3 | Abrir un prestador y tocar "Cómo llegar" | El perfil muestra la distancia, y "Cómo llegar" abre la app de mapas en la ubicación del prestador | `docs/screenshots/tp7-03-como-llegar.png` |
 | 4 | Escribir un mensaje y tocar **WhatsApp** | Se abre WhatsApp con el saludo y el mensaje | `docs/screenshots/tp7-04-whatsapp.png` |
 | 5 | Asistente: "Se me cortó la luz en la cocina" | Te sugerimos: Electricista | `docs/screenshots/tp7-05-asistente-electricista.png` |
 | 6 | Asistente: "Pierde agua la canilla del baño" | Te sugerimos: Plomero | `docs/screenshots/tp7-06-asistente-plomero.png` |
@@ -240,8 +232,7 @@ Los teléfonos del seed son ficticios. Para probar WhatsApp de verdad, se cambia
 | Qué | Dónde | Sin esto |
 |---|---|---|
 | **Habilitar Firebase AI Logic** con el proveedor **Gemini Developer API** | Consola de Firebase → *AI Logic* → *Comenzar*. No requiere Blaze | El asistente responde "No pudimos analizar tu consulta, elegí la categoría manualmente" |
-| *(Opcional)* **Key de Maps SDK for Android** restringida a `com.example.serviciosya` + SHA-1. Requiere una cuenta de facturación con tarjeta verificada, aunque el uso sea gratuito | Google Cloud Console. Va en `local.properties` como `MAPS_API_KEY=...` (ver el [README](../README.md#pasos)) | El perfil no muestra el mapa. "Cómo llegar", las distancias y el orden por cercanía funcionan igual. **Así se entregó el TP**, porque el equipo no tiene tarjeta |
-| **Recargar el seed** con las coordenadas | `cd tools/seed && npm run seed` | Los prestadores no tienen ubicación: no hay distancias ni mapa |
+| **Recargar el seed** con las coordenadas | `cd tools/seed && npm run seed` | Los prestadores no tienen ubicación: no hay distancias ni "Cómo llegar" |
 
 ## 6. Diagrama de arquitectura
 

@@ -392,13 +392,13 @@ flowchart TB
 
 > Entregable 3 del TP7. La selección, la implementación y las pruebas están en [INTEGRACIONES.md](INTEGRACIONES.md).
 
-El diagrama parte de la [arquitectura actual](#1-arquitectura-actual-mvp) y le suma tres integraciones: **ubicación y mapa**, **contacto directo** y un **asistente con IA**. Usa la misma leyenda que la sección 3:
+El diagrama parte de la [arquitectura actual](#1-arquitectura-actual-mvp) y le suma tres integraciones: **ubicación**, **contacto directo** y un **asistente con IA**. Usa la misma leyenda que la sección 3:
 
 - ⬜ **Existente**: ya estaba implementado y no cambia.
 - 🟨 **Modificado**: ya existía y se amplió. Lo que se agrega aparece con un **+**.
 - 🟩 **Nuevo**: lo agrega el TP7.
 
-Las reglas de la arquitectura se mantienen. Cada SDK nuevo entra en **Datos** detrás de una interfaz del **Dominio**, lo crea `AppContainer`, y si no está disponible se usa un *fallback* que no rompe la app. La única excepción es el mapa: `GoogleMap` es un componente visual de Compose, así que vive en la pantalla y se oculta si no hay key.
+Las reglas de la arquitectura se mantienen. Cada SDK nuevo entra en **Datos** detrás de una interfaz del **Dominio**, lo crea `AppContainer`, y si no está disponible se usa un *fallback* que no rompe la app.
 
 ### 6.1 Vista general
 
@@ -408,7 +408,7 @@ flowchart LR
         subgraph UI["Presentación"]
             HOME["<b>Inicio</b><br/>categorías y búsqueda<br/>+ tarjeta del asistente"]
             LIST["<b>Prestadores</b><br/>+ permiso de ubicación<br/>+ distancia y orden"]
-            DET["<b>Perfil del prestador</b><br/>+ mapa · Cómo llegar<br/>+ WhatsApp · Llamar · Compartir<br/>+ mensaje sugerido"]
+            DET["<b>Perfil del prestador</b><br/>+ distancia · Cómo llegar<br/>+ WhatsApp · Llamar · Compartir<br/>+ mensaje sugerido"]
             VM["<b>ViewModels</b><br/>Home · Providers · ProviderDetail<br/>+ AssistantViewModel"]
         end
         subgraph DOM["Dominio"]
@@ -438,9 +438,8 @@ flowchart LR
         SHARE["<b>Compartir</b> · app de mapas"]
     end
 
-    subgraph GOOGLE["Google Play Services y Maps Platform"]
+    subgraph GOOGLE["Google Play Services"]
         GPS["<b>Fused Location Provider</b><br/>play-services-location"]
-        MAPS["<b>Maps SDK for Android</b><br/>maps-compose"]
     end
 
     subgraph LEG["Leyenda"]
@@ -463,17 +462,16 @@ flowchart LR
     CON -- "intent tel:" --> DIAL
     CON -- "intent SEND / geo:" --> SHARE
     LOC -- "ubicación aproximada" --> GPS
-    DET -- "tiles del mapa" --> MAPS
 
     classDef existing fill:#eceff1,stroke:#607d8b,color:#263238;
     classDef modified fill:#fff3cd,stroke:#e0a800,color:#5d4037;
     classDef new fill:#d9f2d9,stroke:#2e7d32,color:#1b5e20;
     class AUTH,AZ,L1 existing;
     class HOME,LIST,DET,VM,UC,IFACE,REPO,FS,GA,L2 modified;
-    class PURE,LOC,CON,GEM,GPS,MAPS,WA,DIAL,SHARE,AIL,GEMINI,L3 new;
+    class PURE,LOC,CON,GEM,GPS,WA,DIAL,SHARE,AIL,GEMINI,L3 new;
 ```
 
-- **Ubicación y mapa:** `FusedLocationProvider` pide la ubicación aproximada a Google Play Services. La distancia se calcula en el dominio y nunca sale del teléfono: a Analytics solo llega un rango (`<1km`, `1-3km`, etc.).
+- **Ubicación:** `FusedLocationProvider` pide la ubicación aproximada a Google Play Services. La distancia se calcula en el dominio y nunca sale del teléfono: a Analytics solo llega un rango (`<1km`, `1-3km`, etc.).
 - **Contacto directo:** no usa un SDK. Arma links públicos (`wa.me`, `tel:`, `geo:`) y los abre con Intents, sin permisos extra.
 - **Asistente:** `GeminiServiceAssistant` envía solo el texto del problema y la lista de categorías, y pide la respuesta en JSON con un esquema fijo. El caso de uso valida que la categoría exista antes de mostrarla.
 - **Azure** sigue siendo el laboratorio de escalabilidad del TP3. La app no consume ese backend, así que no tiene flechas desde la app.
@@ -515,6 +513,6 @@ Si Gemini falla o no está habilitado, el usuario ve "No pudimos analizar tu con
 
 | Integración | Funcionalidad nueva | Hallazgo que la motiva | Métrica para evaluarla |
 |---|---|---|---|
-| **Play Services Location + Maps Compose** | Distancia a cada prestador, listado ordenado por cercanía, mapa y "Cómo llegar" | **H2**: 5 de 15 prestadores recibieron todas las solicitudes | % de `location_permission_result` con `granted = true`. Reparto de `contact_request` entre prestadores antes y después |
+| **Google Play Services Location** | Distancia a cada prestador, listado ordenado por cercanía y "Cómo llegar" | **H2**: 5 de 15 prestadores recibieron todas las solicitudes | % de `location_permission_result` con `granted = true`. Reparto de `contact_request` entre prestadores antes y después |
 | **Contacto directo** (WhatsApp, llamada, compartir) | Contactar al prestador desde el perfil, con el mensaje ya escrito | **H4**: la solicitud quedaba *Pendiente* para siempre porque nadie la recibía | Distribución de `contact_channel` por canal (`whatsapp`, `call`, `share`) |
 | **Gemini con Firebase AI Logic** | El usuario describe su problema y la app sugiere la categoría y redacta el mensaje | **H5**: el 50 % de las solicitudes llegó sin mensaje. **H3**: búsquedas de servicios que no existen | Tasa de `assistant_used` con `result = matched`. Cantidad de `assistant_unmatched` por servicio. % de solicitudes con mensaje antes y después, y `contact_request` con `from_assistant = true` |

@@ -6,7 +6,6 @@
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%C2%B7%20Firestore%20%C2%B7%20Analytics%20%C2%B7%20AI%20Logic-FFCA28?logo=firebase&logoColor=black)
-![Google Maps](https://img.shields.io/badge/Google-Maps%20%C2%B7%20Location-4285F4?logo=googlemaps&logoColor=white)
 
 ServiciosYA es una app Android que conecta a personas que necesitan resolver un trabajo puntual en su casa (un enchufe que no anda, una pérdida de agua, un aire acondicionado que no enfría) con prestadores de servicios de su ciudad.
 
@@ -27,7 +26,7 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 - **Cuenta de usuario:** registro, inicio de sesión y cierre de sesión con email y contraseña. La sesión queda guardada, así que al volver a abrir la app se entra directo.
 - **Categorías:** Electricista, Plomero, Aire acondicionado, Técnico PC y Jardinero.
 - **Prestadores por rubro:** listado ordenado por calificación, con ciudad y rating. Si el usuario activa la ubicación, se ordena por cercanía y muestra la distancia ("a 2,3 km").
-- **Perfil del prestador:** descripción del servicio, calificación, ciudad, mapa con la ubicación y botón "Cómo llegar".
+- **Perfil del prestador:** descripción del servicio, calificación, ciudad, distancia y botón "Cómo llegar".
 - **Contacto directo:** botones para escribirle por **WhatsApp** con el mensaje ya armado, **llamar** o **compartir** el prestador.
 - **Asistente con IA (Gemini):** el usuario cuenta su problema con sus palabras y la app le sugiere la categoría y le redacta el mensaje para el prestador.
 - **Solicitud de contacto:** con un mensaje opcional de hasta 500 caracteres. La app evita que se envíe dos veces por un doble toque.
@@ -56,7 +55,7 @@ flowchart LR
 | App | Kotlin, Jetpack Compose, Material 3, Navigation Compose |
 | Estado y asincronía | ViewModel, StateFlow, Kotlin Coroutines |
 | Backend | Firebase Authentication, Cloud Firestore, Google Analytics (Firebase BoM 33.16.0) |
-| APIs y SDKs (TP7) | Firebase AI Logic con Gemini (`gemini-3.5-flash`), Google Play Services Location, Maps Compose, Intents de Android (WhatsApp `wa.me`, marcador y compartir) |
+| APIs y SDKs (TP7) | Firebase AI Logic con Gemini (`gemini-3.5-flash`), Google Play Services Location, Intents de Android (WhatsApp `wa.me`, marcador y compartir) |
 | Nube (TP3) | Azure Container Apps para el laboratorio de escalabilidad |
 | Seguridad | Firestore Security Rules, versionadas y con tests |
 | Herramientas | Node.js con el Firebase Admin SDK (seed, reglas y métricas) y Python (simulación de usuarios) |
@@ -110,17 +109,10 @@ ServiciosYA/
    git clone https://github.com/Gon-nazz19/ServiciosYA.git
    ```
 2. Conectar la app a un proyecto de Firebase y colocar `app/google-services.json` (ver [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md)). Este archivo no está en el repositorio. Sin él la app compila, pero muestra un aviso de que no está configurada.
-3. *(Opcional)* Configurar la key de Google Maps para ver el mapa en el perfil del prestador. Google exige verificar una tarjeta para habilitar Maps Platform, aunque el uso sea gratuito. Sin key, la app compila y oculta el mapa, pero "Cómo llegar", las distancias y el orden por cercanía siguen funcionando.
-   1. En [Google Cloud Console](https://console.cloud.google.com/), elegir el proyecto de Firebase y habilitar **Maps SDK for Android** en *APIs y servicios → Biblioteca*.
-   2. En *APIs y servicios → Credenciales*, crear una **clave de API** y restringirla a *Apps para Android*, con el paquete `com.example.serviciosya` y el SHA-1 del certificado de debug (`./gradlew signingReport`). En *Restricciones de API*, dejar solo Maps SDK for Android.
-   3. Agregar la clave a `local.properties`, que no se sube a Git:
-      ```properties
-      MAPS_API_KEY=AIza...
-      ```
-4. *(Opcional)* Habilitar el asistente con IA: en la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
-5. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
-6. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
-7. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
+3. *(Opcional)* Habilitar el asistente con IA: en la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
+4. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
+5. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
+6. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
    ```bash
    ./gradlew installDebug
    ```

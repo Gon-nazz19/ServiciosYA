@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,23 +39,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.example.serviciosya.BuildConfig
 import com.example.serviciosya.domain.location.formatDistance
-import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.domain.model.Provider
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberMarkerState
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
 import com.example.serviciosya.presentation.components.InitialsAvatar
 import com.example.serviciosya.presentation.components.formatRating
@@ -74,7 +63,6 @@ fun ProviderDetailScreen(
     onShare: () -> Unit,
     onDirections: () -> Unit,
     onUserMessageShown: () -> Unit,
-    showMap: Boolean = BuildConfig.HAS_MAPS_KEY,
     onBack: () -> Unit,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -120,7 +108,6 @@ fun ProviderDetailScreen(
                     onCall = onCall,
                     onShare = onShare,
                     onDirections = onDirections,
-                    showMap = showMap,
                 )
             }
         }
@@ -138,7 +125,6 @@ private fun ProviderDetailContent(
     onCall: () -> Unit,
     onShare: () -> Unit,
     onDirections: () -> Unit,
-    showMap: Boolean,
 ) {
     val focusManager = LocalFocusManager.current
     Column(
@@ -183,8 +169,7 @@ private fun ProviderDetailContent(
                 )
             }
         }
-        provider.location?.let { location ->
-            if (showMap) ProviderMap(location = location, title = provider.name)
+        if (provider.location != null) {
             OutlinedButton(onClick = onDirections, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Outlined.Directions, contentDescription = null, modifier = Modifier.size(20.dp))
                 Text(text = "Cómo llegar", modifier = Modifier.padding(start = 8.dp))
@@ -234,31 +219,6 @@ private fun ProviderDetailContent(
         }
     }
 }
-
-@Composable
-private fun ProviderMap(location: GeoPoint, title: String) {
-    val position = LatLng(location.latitude, location.longitude)
-    val cameraPositionState = rememberCameraPositionState {
-        this.position = CameraPosition.fromLatLngZoom(position, MAP_ZOOM)
-    }
-    GoogleMap(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(180.dp)
-            .clip(MaterialTheme.shapes.medium),
-        cameraPositionState = cameraPositionState,
-        // Without scroll gestures the map does not fight with the vertical scroll of the screen.
-        uiSettings = MapUiSettings(
-            scrollGesturesEnabled = false,
-            zoomControlsEnabled = true,
-            mapToolbarEnabled = false,
-        ),
-    ) {
-        Marker(state = rememberMarkerState(position = position), title = title)
-    }
-}
-
-private const val MAP_ZOOM = 15f
 
 @Composable
 private fun RowScope.ContactButton(text: String, icon: ImageVector, onClick: () -> Unit) {

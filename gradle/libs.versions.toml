@@ -13,7 +13,6 @@ coroutines = "1.10.2"
 firebaseBom = "33.16.0"
 googleServices = "4.5.0"
 playServicesLocation = "21.3.0"
-mapsCompose = "6.4.4"
 kotlinxSerialization = "1.9.0"
 
 [libraries]
@@ -45,7 +44,6 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
