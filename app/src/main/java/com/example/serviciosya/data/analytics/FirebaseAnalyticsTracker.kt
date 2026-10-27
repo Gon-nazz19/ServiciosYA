@@ -16,10 +16,11 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.CATEGORY_NAME to categoryName,
     )
 
-    override fun trackProviderView(providerId: String, categoryId: String) = log(
+    override fun trackProviderView(providerId: String, categoryId: String, distanceBucket: String) = log(
         AnalyticsEvents.PROVIDER_VIEW,
         AnalyticsParams.PROVIDER_ID to providerId,
         AnalyticsParams.CATEGORY_ID to categoryId,
+        AnalyticsParams.DISTANCE_BUCKET to distanceBucket,
     )
 
     override fun trackContactRequest(providerId: String, categoryId: String) = log(
@@ -38,6 +39,11 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.CHANNEL to channel.value,
         AnalyticsParams.PROVIDER_ID to providerId,
         AnalyticsParams.CATEGORY_ID to categoryId,
+    )
+
+    override fun trackLocationPermissionResult(granted: Boolean) = log(
+        AnalyticsEvents.LOCATION_PERMISSION_RESULT,
+        AnalyticsParams.GRANTED to granted.toString(),
     )
 
     private fun log(event: String, vararg params: Pair<String, String>) {

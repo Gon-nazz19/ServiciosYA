@@ -105,9 +105,16 @@ ServiciosYA/
    git clone https://github.com/Gon-nazz19/ServiciosYA.git
    ```
 2. Conectar la app a un proyecto de Firebase y colocar `app/google-services.json` (ver [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md)). Este archivo no está en el repositorio. Sin él la app compila, pero muestra un aviso de que no está configurada.
-3. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md).
-4. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
-5. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
+3. *(Opcional)* Configurar la key de Google Maps para ver el mapa en el perfil del prestador. Sin key, la app compila y oculta el mapa, pero el botón "Cómo llegar" sigue funcionando.
+   1. En [Google Cloud Console](https://console.cloud.google.com/), elegir el proyecto de Firebase y habilitar **Maps SDK for Android** en *APIs y servicios → Biblioteca*.
+   2. En *APIs y servicios → Credenciales*, crear una **clave de API** y restringirla a *Apps para Android*, con el paquete `com.example.serviciosya` y el SHA-1 del certificado de debug (`./gradlew signingReport`). En *Restricciones de API*, dejar solo Maps SDK for Android.
+   3. Agregar la clave a `local.properties`, que no se sube a Git:
+      ```properties
+      MAPS_API_KEY=AIza...
+      ```
+4. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
+5. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
+6. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
    ```bash
    ./gradlew installDebug
    ```

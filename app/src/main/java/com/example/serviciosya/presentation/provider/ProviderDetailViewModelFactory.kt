@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.contact.ContactLauncher
+import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.repository.ProviderRepository
 import com.example.serviciosya.domain.repository.ServiceRequestRepository
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
@@ -14,6 +15,7 @@ class ProviderDetailViewModelFactory(
     private val providerRepository: ProviderRepository,
     private val serviceRequestRepository: ServiceRequestRepository,
     private val contactLauncher: ContactLauncher,
+    private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
@@ -24,6 +26,7 @@ class ProviderDetailViewModelFactory(
             getProvider = GetProviderUseCase(providerRepository),
             createServiceRequest = CreateServiceRequestUseCase(serviceRequestRepository),
             contactLauncher = contactLauncher,
+            locationProvider = locationProvider,
             analytics = analytics,
         ) as T
     }

@@ -1,5 +1,8 @@
 package com.example.serviciosya.presentation.provider
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,8 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,12 +27,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.serviciosya.domain.location.formatDistance
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.presentation.components.InitialsAvatar
 import com.example.serviciosya.presentation.components.formatRating
@@ -38,9 +45,15 @@ fun ProvidersScreen(
     categoryName: String,
     uiState: ProvidersUiState,
     onRetry: () -> Unit,
+    onLocationPermissionResult: (Boolean) -> Unit,
+    onDismissLocationPrompt: () -> Unit,
     onProviderClick: (Provider) -> Unit,
     onBack: () -> Unit,
 ) {
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+        onLocationPermissionResult,
+    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -73,11 +86,22 @@ fun ProvidersScreen(
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    items(uiState.providers, key = { it.id }) { provider ->
+                    if (uiState.showLocationPrompt) {
+                        item(key = "location-prompt") {
+                            LocationPrompt(
+                                onEnable = {
+                                    permissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                },
+                                onDismiss = onDismissLocationPrompt,
+                            )
+                        }
+                    }
+                    items(uiState.providers, key = { it.provider.id }) { item ->
                         ProviderCard(
-                            provider = provider,
+                            provider = item.provider,
+                            distanceKm = item.distanceKm,
                             categoryName = categoryName,
-                            onClick = { onProviderClick(provider) },
+                            onClick = { onProviderClick(item.provider) },
                         )
                     }
                 }
@@ -89,6 +113,7 @@ fun ProvidersScreen(
 @Composable
 private fun ProviderCard(
     provider: Provider,
+    distanceKm: Double?,
     categoryName: String,
     onClick: () -> Unit,
 ) {
@@ -119,6 +144,44 @@ private fun ProviderCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                distanceKm?.let {
+                    Text(
+                        text = formatDistance(it),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LocationPrompt(onEnable: () -> Unit, onDismiss: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Outlined.LocationOn, contentDescription = null)
+                Text(
+                    text = "Activá la ubicación para ver los prestadores más cerca tuyo",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(onClick = onDismiss) { Text("Ahora no") }
+                TextButton(onClick = onEnable) { Text("Activar") }
             }
         }
     }

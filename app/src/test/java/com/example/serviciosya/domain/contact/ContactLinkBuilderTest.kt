@@ -1,5 +1,6 @@
 package com.example.serviciosya.domain.contact
 
+import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.testutil.testProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -54,6 +55,13 @@ class ContactLinkBuilderTest {
         val url = ContactLinkBuilder.whatsAppUrl("5493564400101", "Hola, ¿mañana podés?")
 
         assertEquals("https://wa.me/5493564400101?text=Hola%2C%20%C2%BFma%C3%B1ana%20pod%C3%A9s%3F", url)
+    }
+
+    @Test
+    fun `directions uri pins the location with the encoded name`() {
+        val uri = ContactLinkBuilder.directionsUri(GeoPoint(-31.4268, -62.0849), "Plomería García")
+
+        assertEquals("geo:-31.4268,-62.0849?q=-31.4268,-62.0849(Plomer%C3%ADa%20Garc%C3%ADa)", uri)
     }
 
     @Test

@@ -8,6 +8,7 @@ class FakeContactLauncher(
     val whatsAppUrls = mutableListOf<String>()
     val dialedPhones = mutableListOf<String>()
     val sharedTexts = mutableListOf<String>()
+    val mapUris = mutableListOf<String>()
 
     override fun openWhatsApp(url: String): Boolean {
         whatsAppUrls += url
@@ -21,6 +22,11 @@ class FakeContactLauncher(
 
     override fun share(text: String): Boolean {
         sharedTexts += text
+        return result
+    }
+
+    override fun openMap(geoUri: String): Boolean {
+        mapUris += geoUri
         return result
     }
 }

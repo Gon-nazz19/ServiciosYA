@@ -19,10 +19,14 @@ class FakeAnalyticsTracker : AnalyticsTracker {
         )
     }
 
-    override fun trackProviderView(providerId: String, categoryId: String) {
+    override fun trackProviderView(providerId: String, categoryId: String, distanceBucket: String) {
         events += TrackedEvent(
             AnalyticsEvents.PROVIDER_VIEW,
-            mapOf(AnalyticsParams.PROVIDER_ID to providerId, AnalyticsParams.CATEGORY_ID to categoryId),
+            mapOf(
+                AnalyticsParams.PROVIDER_ID to providerId,
+                AnalyticsParams.CATEGORY_ID to categoryId,
+                AnalyticsParams.DISTANCE_BUCKET to distanceBucket,
+            ),
         )
     }
 
@@ -45,6 +49,13 @@ class FakeAnalyticsTracker : AnalyticsTracker {
                 AnalyticsParams.PROVIDER_ID to providerId,
                 AnalyticsParams.CATEGORY_ID to categoryId,
             ),
+        )
+    }
+
+    override fun trackLocationPermissionResult(granted: Boolean) {
+        events += TrackedEvent(
+            AnalyticsEvents.LOCATION_PERMISSION_RESULT,
+            mapOf(AnalyticsParams.GRANTED to granted.toString()),
         )
     }
 }

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,13 @@ plugins {
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
+
+// The Maps key lives in local.properties (not in Git). Without it the app builds and hides the map.
+val mapsApiKey: String = rootProject.file("local.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use(::load) } }
+    ?.getProperty("MAPS_API_KEY")
+    .orEmpty()
 
 android {
     namespace = "com.example.serviciosya"
@@ -25,6 +34,9 @@ android {
 
         // Off until createServiceRequest is deployed: requests are written straight to Firestore.
         buildConfigField("boolean", "CREATE_REQUESTS_WITH_FUNCTION", "false")
+
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+        buildConfigField("boolean", "HAS_MAPS_KEY", mapsApiKey.isNotBlank().toString())
     }
 
     buildTypes {
@@ -68,6 +80,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.analytics)
+    implementation(libs.play.services.location)
+    implementation(libs.maps.compose)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)

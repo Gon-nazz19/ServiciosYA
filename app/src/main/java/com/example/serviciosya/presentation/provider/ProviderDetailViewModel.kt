@@ -6,6 +6,9 @@ import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.analytics.ContactChannel
 import com.example.serviciosya.domain.contact.ContactLauncher
 import com.example.serviciosya.domain.contact.ContactLinkBuilder
+import com.example.serviciosya.domain.location.DistanceCalculator
+import com.example.serviciosya.domain.location.LocationProvider
+import com.example.serviciosya.domain.location.distanceBucket
 import com.example.serviciosya.domain.model.NewServiceRequest
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
@@ -24,6 +27,7 @@ data class ProviderDetailUiState(
     val isSubmitting: Boolean = false,
     val requestSent: Boolean = false,
     val userMessage: String? = null,
+    val distanceKm: Double? = null,
 )
 
 class ProviderDetailViewModel(
@@ -31,6 +35,7 @@ class ProviderDetailViewModel(
     private val getProvider: GetProviderUseCase,
     private val createServiceRequest: CreateServiceRequestUseCase,
     private val contactLauncher: ContactLauncher,
+    private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProviderDetailUiState())
@@ -54,9 +59,13 @@ class ProviderDetailViewModel(
                             errorMessage = if (provider == null) NOT_FOUND_MESSAGE else null,
                         )
                     }
-                    if (provider != null && !providerViewTracked) {
+                    if (provider == null) return@onSuccess
+                    // Usually instant: the list screen already asked for the location moments ago.
+                    val distanceKm = DistanceCalculator.distanceKm(locationProvider.getCurrentLocation(), provider)
+                    _uiState.update { it.copy(distanceKm = distanceKm) }
+                    if (!providerViewTracked) {
                         providerViewTracked = true
-                        analytics.trackProviderView(provider.id, provider.categoryId)
+                        analytics.trackProviderView(provider.id, provider.categoryId, distanceBucket(distanceKm))
                     }
                 }
                 .onFailure {
@@ -139,6 +148,14 @@ class ProviderDetailViewModel(
         }
     }
 
+    fun openDirections() {
+        val provider = _uiState.value.provider ?: return
+        val location = provider.location ?: return
+        if (!contactLauncher.openMap(ContactLinkBuilder.directionsUri(location, provider.name))) {
+            _uiState.update { it.copy(userMessage = MAP_ERROR_MESSAGE) }
+        }
+    }
+
     private fun launchContact(
         provider: Provider,
         channel: ContactChannel,
@@ -165,5 +182,6 @@ class ProviderDetailViewModel(
         const val WHATSAPP_ERROR_MESSAGE = "No se pudo abrir WhatsApp."
         const val CALL_ERROR_MESSAGE = "No se pudo abrir el teléfono."
         const val SHARE_ERROR_MESSAGE = "No se pudo compartir el prestador."
+        const val MAP_ERROR_MESSAGE = "No se encontró una app de mapas."
     }
 }

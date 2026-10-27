@@ -7,11 +7,13 @@ import com.example.serviciosya.domain.analytics.ContactChannel
 class NoOpAnalyticsTracker : AnalyticsTracker {
     override fun trackCategoryView(categoryId: String, categoryName: String) = Unit
 
-    override fun trackProviderView(providerId: String, categoryId: String) = Unit
+    override fun trackProviderView(providerId: String, categoryId: String, distanceBucket: String) = Unit
 
     override fun trackContactRequest(providerId: String, categoryId: String) = Unit
 
     override fun trackServiceSearch(query: String) = Unit
 
     override fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String) = Unit
+
+    override fun trackLocationPermissionResult(granted: Boolean) = Unit
 }

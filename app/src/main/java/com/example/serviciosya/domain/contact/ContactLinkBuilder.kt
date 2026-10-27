@@ -1,5 +1,6 @@
 package com.example.serviciosya.domain.contact
 
+import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.domain.model.Provider
 import java.net.URLEncoder
 
@@ -45,6 +46,12 @@ object ContactLinkBuilder {
         if (details.isNotEmpty()) append(" - ").append(details.joinToString(", "))
         if (provider.phone.isNotBlank()) append("\nTeléfono: ").append(provider.phone)
         append("\nLo encontré en ServiciosYA.")
+    }
+
+    /** geo: URI that opens the maps app with a pin on the provider, labeled with its name. */
+    fun directionsUri(location: GeoPoint, label: String): String {
+        val coordinates = "${location.latitude},${location.longitude}"
+        return "geo:$coordinates?q=$coordinates(${encode(label)})"
     }
 
     /** URLEncoder writes spaces as "+", which wa.me shows literally; %20 is safe everywhere. */

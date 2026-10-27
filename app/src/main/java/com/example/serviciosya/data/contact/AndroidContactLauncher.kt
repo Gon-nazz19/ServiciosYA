@@ -27,6 +27,9 @@ class AndroidContactLauncher(
         return start(Intent.createChooser(send, "Compartir prestador"))
     }
 
+    override fun openMap(geoUri: String): Boolean =
+        start(Intent(Intent.ACTION_VIEW, Uri.parse(geoUri)))
+
     private fun start(intent: Intent): Boolean = try {
         // The application context has no task of its own.
         context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))

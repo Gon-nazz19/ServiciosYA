@@ -154,6 +154,7 @@ fun AppNavigation(
                         categoryId = categoryId,
                         categoryName = categoryName,
                         repository = container.providerRepository,
+                        locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
                     ),
                 )
@@ -162,6 +163,8 @@ fun AppNavigation(
                     categoryName = categoryName,
                     uiState = providersState,
                     onRetry = providersViewModel::loadProviders,
+                    onLocationPermissionResult = providersViewModel::onLocationPermissionResult,
+                    onDismissLocationPrompt = providersViewModel::dismissLocationPrompt,
                     onProviderClick = { provider ->
                         navController.navigate(Routes.provider(provider.id))
                     },
@@ -176,6 +179,7 @@ fun AppNavigation(
                         providerRepository = container.providerRepository,
                         serviceRequestRepository = container.serviceRequestRepository,
                         contactLauncher = container.contactLauncher,
+                        locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
                     ),
                 )
@@ -193,6 +197,7 @@ fun AppNavigation(
                     onWhatsApp = detailViewModel::contactByWhatsApp,
                     onCall = detailViewModel::call,
                     onShare = { detailViewModel.share(categoryName) },
+                    onDirections = detailViewModel::openDirections,
                     onUserMessageShown = detailViewModel::onUserMessageShown,
                     onBack = navController::popBackStack,
                 )
