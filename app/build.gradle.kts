@@ -22,6 +22,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Off until createServiceRequest is deployed: requests are written straight to Firestore.
+        buildConfigField("boolean", "CREATE_REQUESTS_WITH_FUNCTION", "false")
     }
 
     buildTypes {
@@ -42,6 +45,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

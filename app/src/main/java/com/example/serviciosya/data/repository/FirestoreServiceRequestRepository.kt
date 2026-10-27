@@ -4,9 +4,11 @@ import android.content.Context
 import com.example.serviciosya.data.model.toDomain
 import com.example.serviciosya.data.model.toServiceRequestDto
 import com.example.serviciosya.domain.model.NewServiceRequest
+import com.example.serviciosya.domain.model.RequestStatus
 import com.example.serviciosya.domain.model.ServiceRequest
 import com.example.serviciosya.domain.repository.ServiceRequestRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import java.security.MessageDigest
@@ -17,7 +19,8 @@ class FirestoreServiceRequestRepository(
     context: Context,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val functions: FirebaseFunctions,
+    /** Null while the callable is not deployed: requests are written directly to Firestore. */
+    private val functions: FirebaseFunctions?,
 ) : ServiceRequestRepository {
     private val pendingKeys = context.getSharedPreferences("pending_service_requests", Context.MODE_PRIVATE)
 
@@ -25,6 +28,21 @@ class FirestoreServiceRequestRepository(
         val clientId = auth.currentUser?.uid
             ?: throw IllegalStateException(NOT_AUTHENTICATED_MESSAGE)
         val message = request.message.trim()
+        if (functions == null) {
+            firestore.collection(SERVICE_REQUESTS_COLLECTION).add(
+                mapOf(
+                    "clientId" to clientId,
+                    "providerId" to request.providerId,
+                    "categoryId" to request.categoryId,
+                    "providerName" to request.providerName,
+                    "categoryName" to request.categoryName,
+                    "message" to message,
+                    "status" to RequestStatus.PENDING.name,
+                    "createdAt" to FieldValue.serverTimestamp(),
+                ),
+            ).await()
+            return@runCatching
+        }
         val fingerprint = sha256("$clientId\u0000${request.providerId}\u0000$message")
         val key = synchronized(pendingKeys) {
             pendingKeys.getString(fingerprint, null) ?: UUID.randomUUID().toString().replace("-", "")

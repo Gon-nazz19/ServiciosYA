@@ -1,6 +1,7 @@
 package com.example.serviciosya.di
 
 import android.content.Context
+import com.example.serviciosya.BuildConfig
 import com.example.serviciosya.data.analytics.FirebaseAnalyticsTracker
 import com.example.serviciosya.data.analytics.NoOpAnalyticsTracker
 import com.example.serviciosya.data.repository.FirebaseAuthRepository
@@ -51,7 +52,11 @@ class AppContainer(context: Context) {
             context = context,
             firestore = FirebaseFirestore.getInstance(),
             auth = FirebaseAuth.getInstance(),
-            functions = FirebaseFunctions.getInstance("southamerica-east1"),
+            functions = if (BuildConfig.CREATE_REQUESTS_WITH_FUNCTION) {
+                FirebaseFunctions.getInstance("southamerica-east1")
+            } else {
+                null
+            },
         )
     } else {
         UnavailableServiceRequestRepository()
