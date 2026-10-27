@@ -54,7 +54,7 @@ flowchart LR
 |---|---|
 | App | Kotlin, Jetpack Compose, Material 3, Navigation Compose |
 | Estado y asincronía | ViewModel, StateFlow, Kotlin Coroutines |
-| Backend | Firebase Authentication, Cloud Firestore, Google Analytics (Firebase BoM 33.16.0) |
+| Backend | Firebase Authentication, Cloud Firestore, Google Analytics, App Check (Firebase BoM 34.19.0) |
 | APIs y SDKs (TP7) | Firebase AI Logic con Gemini (`gemini-3.5-flash`), Google Play Services Location, Intents de Android (WhatsApp `wa.me`, marcador y compartir) |
 | Nube (TP3) | Azure Container Apps para el laboratorio de escalabilidad |
 | Seguridad | Firestore Security Rules, versionadas y con tests |
@@ -109,7 +109,10 @@ ServiciosYA/
    git clone https://github.com/Gon-nazz19/ServiciosYA.git
    ```
 2. Conectar la app a un proyecto de Firebase y colocar `app/google-services.json` (ver [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md)). Este archivo no está en el repositorio. Sin él la app compila, pero muestra un aviso de que no está configurada.
-3. *(Opcional)* Habilitar el asistente con IA: en la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
+3. *(Opcional)* Habilitar el asistente con IA. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
+   1. En la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**.
+   2. En **App Check**, registrar la app Android con **Play Integrity** y el SHA-256 del certificado (`./gradlew signingReport`). AI Logic rechaza los pedidos que no traen un token de App Check.
+   3. Para el emulador, abrir la app una vez, copiar el token que imprime Logcat (`DebugAppCheckProvider`) y cargarlo en **App Check → ⋮ → Administrar tokens de depuración**.
 4. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
 5. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
 6. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:

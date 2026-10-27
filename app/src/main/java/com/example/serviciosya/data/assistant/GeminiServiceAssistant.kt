@@ -1,5 +1,6 @@
 package com.example.serviciosya.data.assistant
 
+import android.util.Log
 import com.example.serviciosya.domain.assistant.AssistantException
 import com.example.serviciosya.domain.assistant.AssistantPrompt
 import com.example.serviciosya.domain.assistant.AssistantSuggestion
@@ -21,17 +22,20 @@ class GeminiServiceAssistant(
     override suspend fun analyze(problem: String, categories: List<Category>): Result<AssistantSuggestion> =
         try {
             val response = model.generateContent(AssistantPrompt.userPrompt(problem, categories))
-            response.text?.let(AssistantPrompt::parse)
-                ?.let { Result.success(it) }
-                ?: Result.failure(AssistantException())
+            val suggestion = response.text?.let(AssistantPrompt::parse)
+            if (suggestion == null) Log.w(TAG, "Unreadable answer from $MODEL_NAME")
+            suggestion?.let { Result.success(it) } ?: Result.failure(AssistantException())
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             // Network errors, quota exceeded or AI Logic not enabled in the Firebase console.
+            Log.w(TAG, "Gemini request failed", e)
             Result.failure(AssistantException(e))
         }
 
     companion object {
+        private const val TAG = "GeminiAssistant"
+
         /** Stable Flash model of the Gemini Developer API (see the Firebase AI Logic model list). */
         const val MODEL_NAME = "gemini-3.5-flash"
 

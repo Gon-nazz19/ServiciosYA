@@ -22,7 +22,7 @@ ServiciosYA ya usaba Firebase Authentication, Cloud Firestore, Google Analytics,
 | Desafío | Cómo aparece en ServiciosYA | Mitigación |
 |---|---|---|
 | **Permisos y privacidad** | La ubicación es un dato sensible. El texto que se envía a la IA puede contener datos personales | Solo se pide ubicación **aproximada** (`ACCESS_COARSE_LOCATION`), con un aviso previo y la opción "Ahora no". La distancia se calcula en el teléfono y a Analytics solo llega un rango (`1-3km`). A Gemini se envía solo el texto del problema y la lista de categorías: nunca el nombre, el email ni el uid |
-| **Credenciales y costos** | Un servicio de IA pago podría generar costos o exponer una clave dentro del APK | Firebase AI Logic usa la configuración del proyecto de Firebase, así que la app no guarda ninguna clave propia. Se usa Gemini Developer API, que funciona en el plan gratuito (Spark) |
+| **Credenciales, costos y abuso** | Un servicio de IA podría generar costos, exponer una clave dentro del APK o ser usado por otra app que copie la configuración | Firebase AI Logic usa la configuración del proyecto de Firebase, así que la app no guarda ninguna clave propia. Se usa Gemini Developer API, que funciona en el plan gratuito (Spark). **App Check** garantiza que solo la app real pueda llamar al modelo: Play Integrity en la versión final y un token de depuración registrado para el emulador |
 | **Dependencia de proveedores** | Si cambia la API de un proveedor o se retira un modelo, la app se rompe | Cada SDK está detrás de una **interfaz del dominio** (`LocationProvider`, `ContactLauncher`, `ServiceAssistant`). Cambiar de proveedor es escribir otra clase en `data/` sin tocar ViewModels ni pantallas. El nombre del modelo está en una constante |
 | **Respuestas no deterministas de la IA** | Gemini puede devolver una categoría que no existe, un JSON mal formado o un mensaje demasiado largo | Salida estructurada con `responseSchema`, parseo defensivo y `AnalyzeProblemUseCase`, que descarta categorías inexistentes o inactivas y recorta el mensaje a 500 caracteres |
 | **Tamaño del APK** | Cada SDK suma peso | Se usaron solo los módulos necesarios (`play-services-location` y `firebase-ai`). El contacto directo no agrega ninguna dependencia |
@@ -136,6 +136,7 @@ ContactLinkBuilder.directionsUri(GeoPoint(-31.4268, -62.0849), "Plomería Garcí
 |---|---|
 | Dominio | `domain/assistant/ServiceAssistant.kt` (interfaz, `AssistantSuggestion` y `AssistantException`), `domain/assistant/AssistantPrompt.kt` (prompt y parseo del JSON), `domain/usecase/AnalyzeProblemUseCase.kt` |
 | Datos | `data/assistant/GeminiServiceAssistant.kt`, `data/assistant/UnavailableServiceAssistant.kt` |
+| Seguridad | App Check en `di/AppContainer.kt`. El proveedor se elige por tipo de build: `src/debug/.../AppCheckProviders.kt` (token de depuración) y `src/release/.../AppCheckProviders.kt` (Play Integrity) |
 | Presentación | `presentation/assistant/AssistantViewModel.kt`, `AssistantCard.kt` (tarjeta "¿Qué necesitás resolver?" en el Inicio). `ProviderDetailViewModel.applySuggestedMessage` |
 | Analytics | `assistant_used` con `result` (`matched`, `unmatched` o `error`) y `category_id`. `assistant_unmatched` con `service`. `from_assistant` en `contact_request` |
 
@@ -232,6 +233,7 @@ Los teléfonos del seed son ficticios. Para probar WhatsApp de verdad, se cambia
 | Qué | Dónde | Sin esto |
 |---|---|---|
 | **Habilitar Firebase AI Logic** con el proveedor **Gemini Developer API** | Consola de Firebase → *AI Logic* → *Comenzar*. No requiere Blaze | El asistente responde "No pudimos analizar tu consulta, elegí la categoría manualmente" |
+| **Registrar la app en App Check** con Play Integrity (SHA-256 del certificado) y cargar el **token de depuración** del emulador | Consola de Firebase → *App Check*. El token aparece en Logcat al abrir la app (`DebugAppCheckProvider`) | AI Logic rechaza los pedidos y el asistente muestra el mismo mensaje |
 | **Recargar el seed** con las coordenadas | `cd tools/seed && npm run seed` | Los prestadores no tienen ubicación: no hay distancias ni "Cómo llegar" |
 
 ## 6. Diagrama de arquitectura
