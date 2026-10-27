@@ -44,9 +44,12 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 ```mermaid
 flowchart LR
     A[Registro / Login] --> B[Inicio<br/>categorías y búsqueda]
-    B --> C[Prestadores<br/>de la categoría]
-    C --> D[Perfil del prestador]
+    A --> G[Asistente con IA<br/>sugiere la categoría<br/>y redacta el mensaje]
+    B --> C[Prestadores<br/>ordenados por cercanía]
+    G --> C
+    C --> D[Perfil del prestador<br/>distancia y Cómo llegar]
     D --> E[Solicitar contacto]
+    D --> H[WhatsApp · Llamar<br/>Compartir]
     E --> F[Mis solicitudes]
 ```
 
@@ -74,8 +77,9 @@ Pantallas Compose → ViewModels → Casos de uso → Repositorios (interfaces) 
 - Los repositorios se definen como interfaces en el dominio. Así los ViewModels y casos de uso se prueban con repositorios falsos.
 - `AppContainer` arma las dependencias. Si no encuentra la configuración de Firebase, usa implementaciones alternativas: la app compila igual y muestra un aviso de configuración en vez de fallar.
 - Los errores de Firebase se traducen en la capa de datos a mensajes en español.
+- Los SDKs del TP7 siguen el mismo patrón: cada uno tiene una interfaz en el dominio (`LocationProvider`, `ContactLauncher`, `ServiceAssistant`), su implementación en la capa de datos y una alternativa que no rompe la app si el SDK no está disponible.
 
-El detalle completo, con el modelo de datos y la arquitectura propuesta para la próxima iteración, está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
+El detalle completo, con el modelo de datos, la arquitectura propuesta, el diagrama de escalabilidad (TP3) y el de integraciones (TP7), está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
 ## Estructura del repositorio
 
@@ -91,7 +95,8 @@ ServiciosYA/
 │   ├── seed/               Carga de categorías y prestadores de prueba
 │   ├── firestore-rules/    Tests y publicación de las reglas de seguridad
 │   ├── metrics/            Métricas de uso a partir de Firestore
-│   └── simulation/         Simulación de usuarios sobre la app real
+│   ├── simulation/         Simulación de usuarios sobre la app real
+│   └── scaling-lab/        Laboratorio de escalabilidad (Docker y Azure Container Apps)
 ├── firestore.rules         Reglas de seguridad de Firestore
 └── FIREBASE_SETUP.md       Cómo conectar la app a un proyecto de Firebase
 ```
@@ -131,6 +136,7 @@ ServiciosYA/
 | Escalabilidad TP3 | Balanceo, redundancia, autoescalado y carga, en Docker local y en Azure Container Apps | [Laboratorio](tools/scaling-lab/README.md) |
 | Repositorios | Repositorios reales contra los emuladores de Auth y Firestore | `cd tools/firestore-rules && npm run test:android` |
 | Manual | Flujo completo en la app | Checklist en [`docs/TESTING.md`](docs/TESTING.md) |
+| Manual TP7 | Ubicación, contacto directo y asistente con IA, con capturas | [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md#42-prueba-manual) |
 
 Los tests de reglas y de repositorios usan los emuladores locales de Firebase con un proyecto `demo-`, así que nunca tocan la base real.
 
@@ -155,7 +161,7 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 | [`docs/RESULTADOS.md`](docs/RESULTADOS.md) | Resultados de la prueba, hallazgos y decisión de pivotar o perseverar |
 | [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada, diagrama de escalabilidad (TP3) y de integraciones (TP7) |
 | [`docs/ESCALABILIDAD.md`](docs/ESCALABILIDAD.md) | TP3: estrategia de escalabilidad, configuración en la nube y mediciones |
-| [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md) | TP7: análisis, selección, implementación y pruebas de las integraciones de APIs y SDKs |
+| [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md) | TP7: selección, implementación y pruebas de las integraciones de APIs y SDKs |
 | [`docs/PRUEBA_USUARIOS.md`](docs/PRUEBA_USUARIOS.md) | Protocolo para la prueba con usuarios reales |
 | [`docs/TESTING.md`](docs/TESTING.md) | Estrategia de testing y checklist de prueba manual |
 | [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md) | Configuración de Firebase |
