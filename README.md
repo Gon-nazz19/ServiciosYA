@@ -80,7 +80,7 @@ ServiciosYA/
 │       ├── main/           Código (presentation, domain, data, di, navigation)
 │       ├── test/           Tests unitarios
 │       └── androidTest/    Tests de repositorios contra los emuladores de Firebase
-├── docs/                   Entregables del TP2 y documentación técnica
+├── docs/                   Entregables del TP2 y TP3 y documentación técnica
 ├── tools/
 │   ├── seed/               Carga de categorías y prestadores de prueba
 │   ├── firestore-rules/    Tests y publicación de las reglas de seguridad
@@ -118,7 +118,7 @@ ServiciosYA/
 |---|---|---|
 | Unitarios | ViewModels, casos de uso, validaciones, mapeos y navegación | `./gradlew testDebugUnitTest` |
 | Reglas de Firestore | Qué puede leer y escribir cada usuario | `cd tools/firestore-rules && npm test` |
-| Escalabilidad local TP3 | Balanceo, redundancia, autoescalado y carga sin Firebase | [Laboratorio Docker](tools/scaling-lab/README.md) |
+| Escalabilidad TP3 | Balanceo, redundancia, autoescalado y carga, en Docker local y en Azure Container Apps | [Laboratorio](tools/scaling-lab/README.md) |
 | Repositorios | Repositorios reales contra los emuladores de Auth y Firestore | `cd tools/firestore-rules && npm run test:android` |
 | Manual | Flujo completo en la app | Checklist en [`docs/TESTING.md`](docs/TESTING.md) |
 
@@ -143,7 +143,8 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 |---|---|
 | [`docs/MVP.md`](docs/MVP.md) | Definición del MVP: problema, hipótesis, alcance y métricas de éxito |
 | [`docs/RESULTADOS.md`](docs/RESULTADOS.md) | Resultados de la prueba, hallazgos y decisión de pivotar o perseverar |
-| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos y arquitectura actualizada |
+| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada y diagrama de escalabilidad (TP3) |
+| [`docs/ESCALABILIDAD.md`](docs/ESCALABILIDAD.md) | TP3: estrategia de escalabilidad, configuración en la nube y mediciones |
 | [`docs/PRUEBA_USUARIOS.md`](docs/PRUEBA_USUARIOS.md) | Protocolo para la prueba con usuarios reales |
 | [`docs/TESTING.md`](docs/TESTING.md) | Estrategia de testing y checklist de prueba manual |
 | [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md) | Configuración de Firebase |

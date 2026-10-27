@@ -289,3 +289,101 @@ flowchart LR
     L --> B2["Próximo Build<br/>componentes nuevos<br/>(sección 3)"]
     B2 -.-> M
 ```
+
+## 5. Arquitectura con estrategia de escalabilidad (TP3)
+
+> Entregable 3 del TP3. La estrategia completa y las mediciones están en [ESCALABILIDAD.md](ESCALABILIDAD.md).
+
+El diagrama agrega a la arquitectura los componentes de nube y los mecanismos que permiten escalar. Cada caja tiene un color según su rol:
+
+- 🟦 **Balanceo de carga**: reparte las solicitudes entre instancias.
+- 🟩 **Autoescalado**: agrega o quita instancias según la carga.
+- 🟪 **Redundancia**: datos o instancias replicados para tolerar fallas.
+- ⬜ **Otros**: componentes sin un rol de escalado propio.
+
+### 5.1 Vista general
+
+```mermaid
+flowchart LR
+    subgraph LEG["Leyenda"]
+        direction TB
+        K1["Balanceo"]
+        K2["Autoescalado"]
+        K3["Redundancia"]
+    end
+
+    subgraph APP["App Android"]
+        direction TB
+        UI["UI + ViewModels<br/>Casos de uso"]
+        REPO["Repositorios<br/>reintento con clave<br/>de idempotencia"]
+        UI --> REPO
+    end
+
+    subgraph GCP["Firebase / Google Cloud · southamerica-east1"]
+        direction TB
+        AUTH["<b>Authentication</b><br/>servicio administrado"]
+        GFE["<b>Front end de Google</b><br/>HTTPS + balanceo"]
+        subgraph CF["Cloud Functions v2: createServiceRequest"]
+            direction LR
+            F1["instancia 1"]
+            F2["instancia 2"]
+            F3["instancia 3"]
+        end
+        SCF["<b>Escalador de Cloud Run</b><br/>0 a 3 instancias<br/>10 solicitudes por instancia"]
+        FS[("<b>Cloud Firestore</b><br/>regional, replicado<br/>en 3 zonas")]
+        GFE --> F1 & F2 & F3
+        SCF -. "agrega / quita" .-> CF
+        F1 & F2 & F3 -- "transacción" --> FS
+    end
+
+    subgraph AZ["Azure for Students · Chile Central"]
+        direction TB
+        ING["<b>Ingress de Container Apps</b><br/>HTTPS + balanceo"]
+        subgraph ACA["Container App: serviciosya-backend"]
+            direction LR
+            R1["réplica 1"]
+            R2["réplica 2"]
+            RN["réplica 3 a 5<br/>(según la carga)"]
+        end
+        KEDA["<b>Regla de escalado HTTP</b><br/>2 a 5 réplicas de 0,25 vCPU<br/>8 solicitudes por réplica"]
+        ACR["<b>Container Registry</b><br/>imagen del backend"]
+        LOG["<b>Log Analytics</b><br/>registros"]
+        ING --> R1 & R2 & RN
+        KEDA -. "agrega / quita" .-> ACA
+        ACR -. "imagen" .-> ACA
+        ACA -. "logs" .-> LOG
+    end
+
+    K6["<b>k6</b><br/>prueba de carga"]
+
+    REPO -- "login" --> AUTH
+    REPO -- "crear solicitud<br/>(callable)" --> GFE
+    REPO -- "leer catálogo<br/>y solicitudes" --> FS
+    K6 -- "40 usuarios<br/>concurrentes" --> ING
+
+    classDef lb fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a;
+    classDef auto fill:#d9f2d9,stroke:#2e7d32,color:#1b5e20;
+    classDef red fill:#ede7f6,stroke:#5e35b1,color:#311b92;
+    classDef other fill:#eceff1,stroke:#607d8b,color:#263238;
+    class GFE,ING,K1 lb;
+    class SCF,KEDA,K2 auto;
+    class FS,F1,F2,F3,R1,R2,RN,K3 red;
+    class UI,REPO,AUTH,ACR,LOG,K6 other;
+```
+
+- **Google Cloud** es la arquitectura de producción de la app: la escritura de solicitudes pasa por una Cloud Function con autoescalado, y Firestore y Authentication escalan solos porque son servicios administrados.
+- **Azure Container Apps** es la implementación desplegada y medida en este TP: el mismo patrón (ingreso con balanceo, réplicas sin estado y una regla de autoescalado) aplicado a un backend de prueba, sometido a carga con k6.
+
+### 5.2 Ciclo de autoescalado
+
+Los dos escaladores siguen el mismo ciclo. En Azure la métrica es la cantidad de solicitudes concurrentes por réplica:
+
+```mermaid
+flowchart TB
+    A["Llegan solicitudes"] --> B["El balanceador<br/>las reparte entre réplicas"]
+    B --> C{"¿Más de 8 solicitudes<br/>concurrentes por réplica?"}
+    C -- "sí" --> D["Agrega réplicas<br/>(hasta 5)"]
+    C -- "no, durante 5 minutos" --> E["Quita réplicas<br/>(hasta 2)"]
+    D --> B
+    E --> B
+```

@@ -7,7 +7,7 @@ El proyecto tiene seis niveles de prueba (EPIC 15 y TP3).
 | Unit tests (US-150) | ViewModels, casos de uso, validaciones, mapeos y navegación | `./gradlew testDebugUnitTest` | No |
 | Reglas de Firestore (EPIC 13) | `firestore.rules`: qué puede leer y escribir cada usuario | `cd tools/firestore-rules && npm test` | No (emulador) |
 | Callable (TP3) | Validación, autorización, creación e idempotencia | `cd functions && npm test` | No (emuladores) |
-| Escalabilidad local (TP3) | Balanceo, redundancia, autoescalado y carga | [Laboratorio Docker](../tools/scaling-lab/README.md) | No |
+| Escalabilidad (TP3) | Balanceo, redundancia, autoescalado y carga, en Docker local y en Azure Container Apps | [Laboratorio](../tools/scaling-lab/README.md) | No |
 | Repositorios (US-151) | Repositorios reales de Auth y Firestore, con las reglas cargadas | `cd tools/firestore-rules && npm run test:android` | No (emulador, proyecto `demo-`) |
 | Prueba manual (US-152) | Flujo completo en la app | Checklist de abajo | Sí |
 
