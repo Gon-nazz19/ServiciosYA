@@ -1,0 +1,15 @@
+{
+  "timestamp_utc": "2026-10-27T00:10:35.824934+00:00",
+  "requests": 400,
+  "concurrency": 40,
+  "errors": 0,
+  "latency_avg_ms": 924.2,
+  "latency_p95_ms": 956.7,
+  "instances": {
+    "adc-sandbox-0e97a4": 88,
+    "adc-sandbox-0be08e": 85,
+    "adc-sandbox-0c7357": 69,
+    "adc-sandbox-eeec3b": 84,
+    "adc-sandbox-f67e7b": 74
+  }
+}

@@ -51,6 +51,38 @@ python summarize.py
 
 El informe `results/RESULTADOS.md` contiene concurrencia, solicitudes, errores, latencia media y p95, instancias usadas y cambios de escala. Los valores dependen del equipo y de la carga local; conservar los archivos de `results/` junto con el informe permite auditar cada ejecución.
 
+## 3. Despliegue en la nube: Azure Container Apps
+
+El mismo backend se despliega en **Azure Container Apps** con la suscripción *Azure for Students* (sin tarjeta). La plataforma reemplaza las piezas locales: el ingreso HTTPS administrado balancea entre réplicas (en lugar de Nginx) y una regla de escalado HTTP agrega una réplica cada 8 solicitudes concurrentes, entre 2 y 5 réplicas (en lugar de `autoscale.py`). Las 2 réplicas mínimas dan redundancia: si una falla, la otra sigue atendiendo. Tras 5 minutos sin carga, Azure vuelve al mínimo.
+
+| Recurso | Nombre | Para qué |
+|---|---|---|
+| Grupo de recursos | `rg-serviciosya-tp3` | Agrupa todo; borrarlo elimina el laboratorio completo |
+| Container Registry (Basic) | `serviciosyatp3…` | Guarda la imagen del backend |
+| Container Apps Environment + Log Analytics | `cae-serviciosya-tp3` | Entorno administrado y registros |
+| Container App | `serviciosya-backend` | 0,25 vCPU / 0,5 GiB, ingreso externo, 2–5 réplicas, 8 solicitudes concurrentes por réplica |
+
+La suscripción de estudiante sólo permite algunas regiones; se usa `chilecentral`, la más cercana. ACR Tasks no está disponible en esa suscripción, por eso la imagen se construye con Docker local. El entorno creado por la CLI es de tipo *express*, que no admite identidades administradas: la app descarga la imagen con las credenciales de administrador del registry, que Container Apps guarda como secreto.
+
+Requisitos: Azure CLI con la extensión `containerapp` (`az extension add --name containerapp`), `az login`, Docker iniciado y Bash (Git Bash en Windows). Desde `tools/scaling-lab/azure/`:
+
+```bash
+ACR=serviciosyatp3<sufijo-único> bash deploy.sh   # imprime la URL pública
+```
+
+Medición (desde `tools/scaling-lab/`, con la URL obtenida). En una terminal, registrar réplicas; en otra, generar carga y luego medir el reparto:
+
+```bash
+python azure/watch_replicas.py --seconds 360 --interval 3 --out results/azure/final
+docker run --rm -v "$PWD/load.js:/scripts/load.js:ro" -v "$PWD/results/azure/final:/results"   -e TARGET_URL=<URL>/request -e VUS=40 -e HOLD=4m grafana/k6:0.58.0 run --quiet /scripts/load.js
+python azure/balance.py <URL>/request --requests 400 --concurrency 40 --out results/azure/final
+python azure/summarize.py
+```
+
+`watch_replicas.py` usa `az` del PATH; si la CLI se instaló con pip, definir `AZ_CLI="python -m azure.cli"`. El informe queda en `results/azure/RESULTADOS.md`; los datos de cada corrida (`replicas.csv`, `k6-summary.json`, `balance.json`) en `results/azure/final/`. `results/azure/previas/` conserva dos corridas anteriores, hechas con una versión del backend sin conexiones persistentes (HTTP/1.0), que el ingreso de Azure respondía con un 2–3 % de errores 502; la versión actual usa HTTP/1.1. La corrida `previas/min1` registra además la bajada de réplicas.
+
+Para no consumir crédito después de la entrega: `az group delete --name rg-serviciosya-tp3 --yes`.
+
 ## Limpieza
 
 ```powershell

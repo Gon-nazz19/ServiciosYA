@@ -1,10 +1,13 @@
 import http from 'k6/http';
 import { check } from 'k6';
 
+// VUS and HOLD allow longer runs against Azure; defaults keep the local lab protocol.
+const vus = Number(__ENV.VUS || 24);
+
 export const options = {
   stages: [
-    { duration: '5s', target: 24 },
-    { duration: '25s', target: 24 },
+    { duration: '5s', target: vus },
+    { duration: __ENV.HOLD || '25s', target: vus },
     { duration: '5s', target: 0 },
   ],
   thresholds: {

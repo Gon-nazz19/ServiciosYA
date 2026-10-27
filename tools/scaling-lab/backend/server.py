@@ -7,11 +7,17 @@ import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 
-INSTANCE = os.environ.get("HOSTNAME", "local")
+HOSTNAME = os.environ.get("HOSTNAME", "local")
+# Azure Container Apps replicas share the same hostname, so each one adds a random suffix.
+INSTANCE = f"{HOSTNAME}-{uuid.uuid4().hex[:6]}" if os.environ.get("UNIQUE_INSTANCE") else HOSTNAME
 WORK_SECONDS = int(os.environ.get("WORK_MS", "250")) / 1000
 
 
 class Handler(BaseHTTPRequestHandler):
+    # Keep-alive: with HTTP/1.0 every response closes the connection, and a load balancer that
+    # reuses upstream connections (Azure Container Apps ingress) answers 502 when it picks a closed one.
+    protocol_version = "HTTP/1.1"
+
     def do_GET(self):
         if self.path != "/health":
             self.send_error(404)

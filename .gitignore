@@ -28,3 +28,4 @@ firestore-debug.log
 /tools/metrics/resultados-*.md
 /tools/simulation/runs/*/analytics.log
 __pycache__/
+/tools/scaling-lab/results/azure/**/requests.csv.gz
