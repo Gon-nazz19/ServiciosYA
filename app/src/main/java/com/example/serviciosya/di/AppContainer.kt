@@ -4,6 +4,8 @@ import android.content.Context
 import com.example.serviciosya.BuildConfig
 import com.example.serviciosya.data.analytics.FirebaseAnalyticsTracker
 import com.example.serviciosya.data.analytics.NoOpAnalyticsTracker
+import com.example.serviciosya.data.assistant.GeminiServiceAssistant
+import com.example.serviciosya.data.assistant.UnavailableServiceAssistant
 import com.example.serviciosya.data.contact.AndroidContactLauncher
 import com.example.serviciosya.data.location.FusedLocationProvider
 import com.example.serviciosya.data.location.NoOpLocationProvider
@@ -16,6 +18,7 @@ import com.example.serviciosya.data.repository.UnavailableCategoryRepository
 import com.example.serviciosya.data.repository.UnavailableProviderRepository
 import com.example.serviciosya.data.repository.UnavailableServiceRequestRepository
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.assistant.ServiceAssistant
 import com.example.serviciosya.domain.contact.ContactLauncher
 import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.repository.AuthRepository
@@ -74,6 +77,12 @@ class AppContainer(context: Context) {
         FirebaseAnalyticsTracker(FirebaseAnalytics.getInstance(context))
     } else {
         NoOpAnalyticsTracker()
+    }
+
+    val serviceAssistant: ServiceAssistant = if (isFirebaseConfigured) {
+        GeminiServiceAssistant.create()
+    } else {
+        UnavailableServiceAssistant()
     }
 
     val contactLauncher: ContactLauncher = AndroidContactLauncher(context)

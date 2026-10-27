@@ -10,7 +10,8 @@ interface AnalyticsTracker {
     /** [distanceBucket] is a coarse range such as "1-3km"; coordinates are never sent. */
     fun trackProviderView(providerId: String, categoryId: String, distanceBucket: String)
 
-    fun trackContactRequest(providerId: String, categoryId: String)
+    /** [fromAssistant] tells whether the message was drafted by the AI assistant. */
+    fun trackContactRequest(providerId: String, categoryId: String, fromAssistant: Boolean)
 
     fun trackServiceSearch(query: String)
 
@@ -18,6 +19,18 @@ interface AnalyticsTracker {
     fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String)
 
     fun trackLocationPermissionResult(granted: Boolean)
+
+    /** [categoryId] is empty when the assistant did not find a category. */
+    fun trackAssistantUsed(result: AssistantResultType, categoryId: String)
+
+    /** A service the app does not offer yet, as named by the assistant ("herrero"). */
+    fun trackAssistantUnmatched(service: String)
+}
+
+enum class AssistantResultType(val value: String) {
+    MATCHED("matched"),
+    UNMATCHED("unmatched"),
+    ERROR("error"),
 }
 
 enum class ContactChannel(val value: String) {
@@ -33,6 +46,8 @@ object AnalyticsEvents {
     const val SERVICE_SEARCH = "service_search"
     const val CONTACT_CHANNEL = "contact_channel"
     const val LOCATION_PERMISSION_RESULT = "location_permission_result"
+    const val ASSISTANT_USED = "assistant_used"
+    const val ASSISTANT_UNMATCHED = "assistant_unmatched"
 }
 
 object AnalyticsParams {
@@ -43,6 +58,9 @@ object AnalyticsParams {
     const val CHANNEL = "channel"
     const val DISTANCE_BUCKET = "distance_bucket"
     const val GRANTED = "granted"
+    const val FROM_ASSISTANT = "from_assistant"
+    const val RESULT = "result"
+    const val SERVICE = "service"
 
     /** Firebase Analytics drops parameter values longer than 100 characters. */
     const val MAX_VALUE_LENGTH = 100

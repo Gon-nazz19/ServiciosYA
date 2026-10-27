@@ -247,6 +247,49 @@ class ProviderDetailViewModelTest {
         val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_REQUEST).single()
         assertEquals("provider-1", event.params[AnalyticsParams.PROVIDER_ID])
         assertEquals("electricistas", event.params[AnalyticsParams.CATEGORY_ID])
+        assertEquals("false", event.params[AnalyticsParams.FROM_ASSISTANT])
+    }
+
+    @Test
+    fun `suggested message prefills an empty field and marks the request`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.applySuggestedMessage("Hola, se me cortó la luz en la cocina.")
+        assertEquals("Hola, se me cortó la luz en la cocina.", viewModel.uiState.value.message)
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        assertEquals("Hola, se me cortó la luz en la cocina.", requestRepository.createdRequests.single().message)
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_REQUEST).single()
+        assertEquals("true", event.params[AnalyticsParams.FROM_ASSISTANT])
+    }
+
+    @Test
+    fun `suggested message never replaces what the user typed`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onMessageChange("Mi propio mensaje")
+
+        viewModel.applySuggestedMessage("Mensaje de la IA")
+
+        assertEquals("Mi propio mensaje", viewModel.uiState.value.message)
+    }
+
+    @Test
+    fun `suggested message is applied only once`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.applySuggestedMessage("Mensaje de la IA")
+        viewModel.onMessageChange("")
+
+        viewModel.applySuggestedMessage("Mensaje de la IA")
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.uiState.value.message)
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_REQUEST).single()
+        assertEquals("false", event.params[AnalyticsParams.FROM_ASSISTANT])
     }
 
     @Test

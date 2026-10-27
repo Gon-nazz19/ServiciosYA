@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.functions)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.ai)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.play.services.location)
     implementation(libs.maps.compose)
     testImplementation(libs.junit)

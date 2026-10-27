@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.analytics.AssistantResultType
 import com.example.serviciosya.domain.analytics.ContactChannel
 import com.google.firebase.analytics.FirebaseAnalytics
 
@@ -23,10 +24,11 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.DISTANCE_BUCKET to distanceBucket,
     )
 
-    override fun trackContactRequest(providerId: String, categoryId: String) = log(
+    override fun trackContactRequest(providerId: String, categoryId: String, fromAssistant: Boolean) = log(
         AnalyticsEvents.CONTACT_REQUEST,
         AnalyticsParams.PROVIDER_ID to providerId,
         AnalyticsParams.CATEGORY_ID to categoryId,
+        AnalyticsParams.FROM_ASSISTANT to fromAssistant.toString(),
     )
 
     override fun trackServiceSearch(query: String) = log(
@@ -44,6 +46,17 @@ class FirebaseAnalyticsTracker(
     override fun trackLocationPermissionResult(granted: Boolean) = log(
         AnalyticsEvents.LOCATION_PERMISSION_RESULT,
         AnalyticsParams.GRANTED to granted.toString(),
+    )
+
+    override fun trackAssistantUsed(result: AssistantResultType, categoryId: String) = log(
+        AnalyticsEvents.ASSISTANT_USED,
+        AnalyticsParams.RESULT to result.value,
+        AnalyticsParams.CATEGORY_ID to categoryId,
+    )
+
+    override fun trackAssistantUnmatched(service: String) = log(
+        AnalyticsEvents.ASSISTANT_UNMATCHED,
+        AnalyticsParams.SERVICE to service,
     )
 
     private fun log(event: String, vararg params: Pair<String, String>) {

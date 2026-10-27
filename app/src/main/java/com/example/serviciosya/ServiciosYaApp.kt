@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.serviciosya.di.AppContainer
 import com.example.serviciosya.navigation.AppNavigation
+import com.example.serviciosya.presentation.assistant.AssistantViewModel
+import com.example.serviciosya.presentation.assistant.AssistantViewModelFactory
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModelFactory
 import com.example.serviciosya.presentation.home.HomeViewModel
@@ -21,9 +23,17 @@ fun ServiciosYaApp(container: AppContainer) {
             analytics = container.analyticsTracker,
         ),
     )
+    val assistantViewModel: AssistantViewModel = viewModel(
+        factory = AssistantViewModelFactory(
+            assistant = container.serviceAssistant,
+            categoryRepository = container.categoryRepository,
+            analytics = container.analyticsTracker,
+        ),
+    )
     AppNavigation(
         container = container,
         authViewModel = authViewModel,
         homeViewModel = homeViewModel,
+        assistantViewModel = assistantViewModel,
     )
 }

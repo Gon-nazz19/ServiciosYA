@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -50,6 +51,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.serviciosya.presentation.assistant.AssistantCard
+import com.example.serviciosya.presentation.assistant.AssistantUiState
 import com.example.serviciosya.presentation.components.InitialsAvatar
 import com.example.serviciosya.presentation.components.formatRating
 
@@ -87,7 +90,11 @@ fun HomeScreen(
     isLoading: Boolean = false,
     errorMessage: String? = null,
     search: HomeSearchState = HomeSearchState(),
+    assistant: AssistantUiState = AssistantUiState(),
     onRetry: () -> Unit = {},
+    onProblemChange: (String) -> Unit = {},
+    onAnalyzeProblem: () -> Unit = {},
+    onSeeSuggestedProviders: (categoryId: String) -> Unit = {},
     onSearchQueryChange: (String) -> Unit = {},
     onCategoryClick: (HomeCategoryItem) -> Unit,
     onProviderClick: (ProviderSearchItem) -> Unit = {},
@@ -140,9 +147,6 @@ fun HomeScreen(
                     // The search key closes the keyboard so the results below are visible.
                     keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                 )
-                if (!search.isActive) {
-                    Text(text = "Categorías", style = MaterialTheme.typography.titleLarge)
-                }
             }
 
             when {
@@ -161,6 +165,17 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    item(key = "assistant", span = { GridItemSpan(maxLineSpan) }) {
+                        AssistantCard(
+                            state = assistant,
+                            onProblemChange = onProblemChange,
+                            onAnalyze = onAnalyzeProblem,
+                            onSeeProviders = onSeeSuggestedProviders,
+                        )
+                    }
+                    item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) {
+                        Text(text = "Categorías", style = MaterialTheme.typography.titleLarge)
+                    }
                     items(categories, key = { it.id }) { category ->
                         CategoryCard(category = category, onClick = { onCategoryClick(category) })
                     }

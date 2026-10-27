@@ -42,6 +42,8 @@ class ProviderDetailViewModel(
     val uiState: StateFlow<ProviderDetailUiState> = _uiState.asStateFlow()
 
     private var providerViewTracked = false
+    private var suggestionApplied = false
+    private var messageFromAssistant = false
 
     init {
         loadProvider()
@@ -99,7 +101,11 @@ class ProviderDetailViewModel(
                 ),
             )
             if (result.isSuccess) {
-                analytics.trackContactRequest(provider.id, provider.categoryId)
+                analytics.trackContactRequest(
+                    provider.id,
+                    provider.categoryId,
+                    fromAssistant = messageFromAssistant && state.message.isNotBlank(),
+                )
             }
             _uiState.update {
                 if (result.isSuccess) {
@@ -114,6 +120,19 @@ class ProviderDetailViewModel(
                 }
             }
         }
+    }
+
+    /**
+     * Prefills the message drafted by the assistant, once, and only if the user has not typed
+     * anything yet.
+     */
+    fun applySuggestedMessage(message: String) {
+        if (suggestionApplied || message.isBlank()) return
+        suggestionApplied = true
+        val state = _uiState.value
+        if (state.message.isNotBlank() || state.requestSent) return
+        messageFromAssistant = true
+        _uiState.update { it.copy(message = message.take(CreateServiceRequestUseCase.MAX_MESSAGE_LENGTH)) }
     }
 
     /** Opens WhatsApp with a greeting plus the message typed in the request field. */
