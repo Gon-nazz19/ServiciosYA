@@ -8,7 +8,7 @@ GROUP="${GROUP:-rg-serviciosya-tp3}"
 ENVIRONMENT="${ENVIRONMENT:-cae-serviciosya-tp3}"
 APP="${APP:-serviciosya-backend}"
 ACR="${ACR:?Definí ACR con un nombre único de registry, por ejemplo serviciosyatp3abcd}"
-IMAGE="$ACR.azurecr.io/$APP:v4"
+IMAGE="$ACR.azurecr.io/$APP:v5"
 
 az group create --name "$GROUP" --location "$LOCATION" -o none
 az acr create --name "$ACR" --resource-group "$GROUP" --location "$LOCATION" --sku Basic --admin-enabled true -o none

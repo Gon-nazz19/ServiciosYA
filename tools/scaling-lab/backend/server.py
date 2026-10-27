@@ -19,6 +19,14 @@ class Handler(BaseHTTPRequestHandler):
     protocol_version = "HTTP/1.1"
 
     def do_GET(self):
+        if self.path == "/":
+            self.reply(200, {
+                "service": "ServiciosYA - backend de solicitudes (TP3, escalabilidad)",
+                "status": "ok",
+                "instance": INSTANCE,
+                "endpoints": {"GET /health": "estado de la réplica", "POST /request": "crea una solicitud"},
+            })
+            return
         if self.path != "/health":
             self.send_error(404)
             return
@@ -50,9 +58,9 @@ class Handler(BaseHTTPRequestHandler):
         })
 
     def reply(self, status, body):
-        encoded = json.dumps(body).encode("utf-8")
+        encoded = json.dumps(body, ensure_ascii=False, indent=2).encode("utf-8")
         self.send_response(status)
-        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
         self.wfile.write(encoded)
