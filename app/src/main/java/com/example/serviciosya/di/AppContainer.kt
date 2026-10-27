@@ -4,6 +4,12 @@ import android.content.Context
 import com.example.serviciosya.BuildConfig
 import com.example.serviciosya.data.analytics.FirebaseAnalyticsTracker
 import com.example.serviciosya.data.analytics.NoOpAnalyticsTracker
+import com.example.serviciosya.data.appcheck.appCheckProviderFactory
+import com.example.serviciosya.data.assistant.GeminiServiceAssistant
+import com.example.serviciosya.data.assistant.UnavailableServiceAssistant
+import com.example.serviciosya.data.contact.AndroidContactLauncher
+import com.example.serviciosya.data.location.FusedLocationProvider
+import com.example.serviciosya.data.location.NoOpLocationProvider
 import com.example.serviciosya.data.repository.FirebaseAuthRepository
 import com.example.serviciosya.data.repository.FirestoreCategoryRepository
 import com.example.serviciosya.data.repository.FirestoreProviderRepository
@@ -13,12 +19,19 @@ import com.example.serviciosya.data.repository.UnavailableCategoryRepository
 import com.example.serviciosya.data.repository.UnavailableProviderRepository
 import com.example.serviciosya.data.repository.UnavailableServiceRequestRepository
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.assistant.ServiceAssistant
+import com.example.serviciosya.domain.contact.ContactLauncher
+import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.repository.AuthRepository
 import com.example.serviciosya.domain.repository.CategoryRepository
 import com.example.serviciosya.domain.repository.ProviderRepository
 import com.example.serviciosya.domain.repository.ServiceRequestRepository
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.android.gms.location.LocationServices
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -67,4 +80,21 @@ class AppContainer(context: Context) {
     } else {
         NoOpAnalyticsTracker()
     }
+
+    val serviceAssistant: ServiceAssistant = if (isFirebaseConfigured) {
+        // Firebase AI Logic rejects requests without an App Check token.
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(appCheckProviderFactory())
+        GeminiServiceAssistant.create()
+    } else {
+        UnavailableServiceAssistant()
+    }
+
+    val contactLauncher: ContactLauncher = AndroidContactLauncher(context)
+
+    val locationProvider: LocationProvider =
+        if (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context) == ConnectionResult.SUCCESS) {
+            FusedLocationProvider(context, LocationServices.getFusedLocationProviderClient(context))
+        } else {
+            NoOpLocationProvider()
+        }
 }

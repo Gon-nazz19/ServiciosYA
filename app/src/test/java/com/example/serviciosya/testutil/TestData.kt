@@ -11,6 +11,8 @@ fun testProvider(
     categoryId: String = "electricistas",
     city: String = "San Francisco",
     rating: Double? = 4.7,
+    latitude: Double? = null,
+    longitude: Double? = null,
 ) = Provider(
     id = id,
     userId = "user-$id",
@@ -18,6 +20,8 @@ fun testProvider(
     description = "Instalaciones y reparaciones eléctricas.",
     categoryId = categoryId,
     city = city,
+    latitude = latitude,
+    longitude = longitude,
     profileImageUrl = "",
     phone = "3564-000000",
     rating = rating,

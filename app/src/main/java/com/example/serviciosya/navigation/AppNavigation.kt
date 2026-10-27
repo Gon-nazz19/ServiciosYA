@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.serviciosya.di.AppContainer
+import com.example.serviciosya.presentation.assistant.AssistantViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
@@ -50,10 +51,12 @@ fun AppNavigation(
     container: AppContainer,
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
+    assistantViewModel: AssistantViewModel,
     navController: NavHostController = rememberNavController(),
 ) {
     val authState by authViewModel.uiState.collectAsStateWithLifecycle()
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
+    val assistantState by assistantViewModel.uiState.collectAsStateWithLifecycle()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -69,6 +72,7 @@ fun AppNavigation(
             // drop them so a new session never restores another user's data.
             TopLevelDestination.entries.forEach { navController.clearBackStack(it.route) }
             homeViewModel.resetSearch()
+            assistantViewModel.reset()
             if (authState.user != null) homeViewModel.loadCategories()
         }
     }
@@ -132,7 +136,13 @@ fun AppNavigation(
                         isLoading = homeState.isLoading,
                         errorMessage = homeState.errorMessage,
                         search = homeState.search,
+                        assistant = assistantState,
                         onRetry = homeViewModel::loadCategories,
+                        onProblemChange = assistantViewModel::onProblemChange,
+                        onAnalyzeProblem = assistantViewModel::analyze,
+                        onSeeSuggestedProviders = { categoryId ->
+                            navController.navigate(Routes.category(categoryId))
+                        },
                         onSearchQueryChange = homeViewModel::onSearchQueryChange,
                         onCategoryClick = { category ->
                             navController.navigate(Routes.category(category.id))
@@ -154,6 +164,7 @@ fun AppNavigation(
                         categoryId = categoryId,
                         categoryName = categoryName,
                         repository = container.providerRepository,
+                        locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
                     ),
                 )
@@ -162,6 +173,8 @@ fun AppNavigation(
                     categoryName = categoryName,
                     uiState = providersState,
                     onRetry = providersViewModel::loadProviders,
+                    onLocationPermissionResult = providersViewModel::onLocationPermissionResult,
+                    onDismissLocationPrompt = providersViewModel::dismissLocationPrompt,
                     onProviderClick = { provider ->
                         navController.navigate(Routes.provider(provider.id))
                     },
@@ -175,10 +188,18 @@ fun AppNavigation(
                         providerId = providerId,
                         providerRepository = container.providerRepository,
                         serviceRequestRepository = container.serviceRequestRepository,
+                        contactLauncher = container.contactLauncher,
+                        locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
                     ),
                 )
                 val detailState by detailViewModel.uiState.collectAsStateWithLifecycle()
+                // Brings the message drafted by the assistant when the provider is of the suggested category.
+                LaunchedEffect(detailState.provider?.categoryId) {
+                    val providerCategoryId = detailState.provider?.categoryId ?: return@LaunchedEffect
+                    assistantViewModel.suggestedMessageFor(providerCategoryId)
+                        ?.let(detailViewModel::applySuggestedMessage)
+                }
                 val categoryName = homeState.categories
                     .firstOrNull { it.id == detailState.provider?.categoryId }
                     ?.name
@@ -189,6 +210,10 @@ fun AppNavigation(
                     onRetry = detailViewModel::loadProvider,
                     onMessageChange = detailViewModel::onMessageChange,
                     onRequestContact = { detailViewModel.requestContact(categoryName) },
+                    onWhatsApp = detailViewModel::contactByWhatsApp,
+                    onCall = detailViewModel::call,
+                    onShare = { detailViewModel.share(categoryName) },
+                    onDirections = detailViewModel::openDirections,
                     onUserMessageShown = detailViewModel::onUserMessageShown,
                     onBack = navController::popBackStack,
                 )

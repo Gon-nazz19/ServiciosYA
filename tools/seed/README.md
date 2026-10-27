@@ -3,7 +3,7 @@
 Carga en Cloud Firestore el dataset mínimo para probar todo el flujo de la app:
 
 - 5 categorías (`categories/{id}`): Electricista, Plomero, Aire acondicionado, Técnico PC y Jardinero.
-- 15 prestadores (`providers/{id}`), 3 por categoría. Todos están activos. Uno no tiene rating, para probar ese caso.
+- 15 prestadores (`providers/{id}`), 3 por categoría. Todos están activos. Uno no tiene rating, para probar ese caso. Cada uno tiene `latitude` y `longitude` dentro de su ciudad (San Francisco, Frontera o Josefina), que la app usa para ordenar por cercanía y para el botón "Cómo llegar".
 
 Los datos están en `seed-data.json`. Para sumar categorías o prestadores alcanza con editar ese archivo y volver a correr el script. No hace falta tocar la app.
 

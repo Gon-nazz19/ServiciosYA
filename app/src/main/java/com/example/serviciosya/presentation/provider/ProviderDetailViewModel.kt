@@ -3,6 +3,12 @@ package com.example.serviciosya.presentation.provider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.analytics.ContactChannel
+import com.example.serviciosya.domain.contact.ContactLauncher
+import com.example.serviciosya.domain.contact.ContactLinkBuilder
+import com.example.serviciosya.domain.location.DistanceCalculator
+import com.example.serviciosya.domain.location.LocationProvider
+import com.example.serviciosya.domain.location.distanceBucket
 import com.example.serviciosya.domain.model.NewServiceRequest
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
@@ -21,18 +27,23 @@ data class ProviderDetailUiState(
     val isSubmitting: Boolean = false,
     val requestSent: Boolean = false,
     val userMessage: String? = null,
+    val distanceKm: Double? = null,
 )
 
 class ProviderDetailViewModel(
     private val providerId: String,
     private val getProvider: GetProviderUseCase,
     private val createServiceRequest: CreateServiceRequestUseCase,
+    private val contactLauncher: ContactLauncher,
+    private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProviderDetailUiState())
     val uiState: StateFlow<ProviderDetailUiState> = _uiState.asStateFlow()
 
     private var providerViewTracked = false
+    private var suggestionApplied = false
+    private var messageFromAssistant = false
 
     init {
         loadProvider()
@@ -50,9 +61,13 @@ class ProviderDetailViewModel(
                             errorMessage = if (provider == null) NOT_FOUND_MESSAGE else null,
                         )
                     }
-                    if (provider != null && !providerViewTracked) {
+                    if (provider == null) return@onSuccess
+                    // Usually instant: the list screen already asked for the location moments ago.
+                    val distanceKm = DistanceCalculator.distanceKm(locationProvider.getCurrentLocation(), provider)
+                    _uiState.update { it.copy(distanceKm = distanceKm) }
+                    if (!providerViewTracked) {
                         providerViewTracked = true
-                        analytics.trackProviderView(provider.id, provider.categoryId)
+                        analytics.trackProviderView(provider.id, provider.categoryId, distanceBucket(distanceKm))
                     }
                 }
                 .onFailure {
@@ -86,7 +101,11 @@ class ProviderDetailViewModel(
                 ),
             )
             if (result.isSuccess) {
-                analytics.trackContactRequest(provider.id, provider.categoryId)
+                analytics.trackContactRequest(
+                    provider.id,
+                    provider.categoryId,
+                    fromAssistant = messageFromAssistant && state.message.isNotBlank(),
+                )
             }
             _uiState.update {
                 if (result.isSuccess) {
@@ -103,6 +122,72 @@ class ProviderDetailViewModel(
         }
     }
 
+    /**
+     * Prefills the message drafted by the assistant, once, and only if the user has not typed
+     * anything yet.
+     */
+    fun applySuggestedMessage(message: String) {
+        if (suggestionApplied || message.isBlank()) return
+        suggestionApplied = true
+        val state = _uiState.value
+        if (state.message.isNotBlank() || state.requestSent) return
+        messageFromAssistant = true
+        _uiState.update { it.copy(message = message.take(CreateServiceRequestUseCase.MAX_MESSAGE_LENGTH)) }
+    }
+
+    /** Opens WhatsApp with a greeting plus the message typed in the request field. */
+    fun contactByWhatsApp() {
+        val provider = _uiState.value.provider ?: return
+        val phone = ContactLinkBuilder.normalizeArgentinePhone(provider.phone)
+        if (phone == null) {
+            _uiState.update { it.copy(userMessage = INVALID_PHONE_MESSAGE) }
+            return
+        }
+        val message = ContactLinkBuilder.whatsAppMessage(provider.name, _uiState.value.message)
+        launchContact(provider, ContactChannel.WHATSAPP, WHATSAPP_ERROR_MESSAGE) {
+            contactLauncher.openWhatsApp(ContactLinkBuilder.whatsAppUrl(phone, message))
+        }
+    }
+
+    fun call() {
+        val provider = _uiState.value.provider ?: return
+        if (provider.phone.isBlank()) {
+            _uiState.update { it.copy(userMessage = INVALID_PHONE_MESSAGE) }
+            return
+        }
+        launchContact(provider, ContactChannel.CALL, CALL_ERROR_MESSAGE) {
+            contactLauncher.dial(provider.phone)
+        }
+    }
+
+    fun share(categoryName: String) {
+        val provider = _uiState.value.provider ?: return
+        launchContact(provider, ContactChannel.SHARE, SHARE_ERROR_MESSAGE) {
+            contactLauncher.share(ContactLinkBuilder.shareText(provider, categoryName))
+        }
+    }
+
+    fun openDirections() {
+        val provider = _uiState.value.provider ?: return
+        val location = provider.location ?: return
+        if (!contactLauncher.openMap(ContactLinkBuilder.directionsUri(location, provider.name))) {
+            _uiState.update { it.copy(userMessage = MAP_ERROR_MESSAGE) }
+        }
+    }
+
+    private fun launchContact(
+        provider: Provider,
+        channel: ContactChannel,
+        errorMessage: String,
+        open: () -> Boolean,
+    ) {
+        if (open()) {
+            analytics.trackContactChannel(channel, provider.id, provider.categoryId)
+        } else {
+            _uiState.update { it.copy(userMessage = errorMessage) }
+        }
+    }
+
     fun onUserMessageShown() {
         _uiState.update { it.copy(userMessage = null) }
     }
@@ -112,5 +197,10 @@ class ProviderDetailViewModel(
         const val LOAD_ERROR_MESSAGE = "No pudimos cargar el prestador."
         const val REQUEST_SENT_MESSAGE = "Solicitud enviada correctamente."
         const val REQUEST_ERROR_MESSAGE = "No pudimos enviar la solicitud. Intentá nuevamente."
+        const val INVALID_PHONE_MESSAGE = "Este prestador no tiene un teléfono válido."
+        const val WHATSAPP_ERROR_MESSAGE = "No se pudo abrir WhatsApp."
+        const val CALL_ERROR_MESSAGE = "No se pudo abrir el teléfono."
+        const val SHARE_ERROR_MESSAGE = "No se pudo compartir el prestador."
+        const val MAP_ERROR_MESSAGE = "No se encontró una app de mapas."
     }
 }

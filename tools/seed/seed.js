@@ -44,6 +44,9 @@ function validate({ categories, providers }) {
     if (provider.rating !== null && (typeof provider.rating !== 'number' || provider.rating < 0 || provider.rating > 5)) {
       errors.push(`Rating inválido en ${provider.id}: ${provider.rating}`);
     }
+    if (!isCoordinate(provider.latitude, 90) || !isCoordinate(provider.longitude, 180)) {
+      errors.push(`Coordenadas inválidas en ${provider.id}: ${provider.latitude}, ${provider.longitude}`);
+    }
     perCategory[provider.categoryId] = (perCategory[provider.categoryId] || 0) + 1;
   }
   for (const id of categoryIds) {
@@ -54,6 +57,10 @@ function validate({ categories, providers }) {
   return errors;
 }
 
+function isCoordinate(value, limit) {
+  return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= limit;
+}
+
 function toProviderDocument(provider) {
   const document = {
     userId: '',
@@ -61,6 +68,8 @@ function toProviderDocument(provider) {
     description: provider.description,
     categoryId: provider.categoryId,
     city: provider.city,
+    latitude: provider.latitude,
+    longitude: provider.longitude,
     profileImageUrl: '',
     phone: provider.phone,
     reviewCount: provider.reviewCount,

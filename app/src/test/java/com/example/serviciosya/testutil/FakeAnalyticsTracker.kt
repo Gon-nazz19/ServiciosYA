@@ -3,6 +3,8 @@ package com.example.serviciosya.testutil
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.analytics.AssistantResultType
+import com.example.serviciosya.domain.analytics.ContactChannel
 
 data class TrackedEvent(val name: String, val params: Map<String, String>)
 
@@ -18,21 +20,58 @@ class FakeAnalyticsTracker : AnalyticsTracker {
         )
     }
 
-    override fun trackProviderView(providerId: String, categoryId: String) {
+    override fun trackProviderView(providerId: String, categoryId: String, distanceBucket: String) {
         events += TrackedEvent(
             AnalyticsEvents.PROVIDER_VIEW,
-            mapOf(AnalyticsParams.PROVIDER_ID to providerId, AnalyticsParams.CATEGORY_ID to categoryId),
+            mapOf(
+                AnalyticsParams.PROVIDER_ID to providerId,
+                AnalyticsParams.CATEGORY_ID to categoryId,
+                AnalyticsParams.DISTANCE_BUCKET to distanceBucket,
+            ),
         )
     }
 
-    override fun trackContactRequest(providerId: String, categoryId: String) {
+    override fun trackContactRequest(providerId: String, categoryId: String, fromAssistant: Boolean) {
         events += TrackedEvent(
             AnalyticsEvents.CONTACT_REQUEST,
-            mapOf(AnalyticsParams.PROVIDER_ID to providerId, AnalyticsParams.CATEGORY_ID to categoryId),
+            mapOf(
+                AnalyticsParams.PROVIDER_ID to providerId,
+                AnalyticsParams.CATEGORY_ID to categoryId,
+                AnalyticsParams.FROM_ASSISTANT to fromAssistant.toString(),
+            ),
         )
     }
 
     override fun trackServiceSearch(query: String) {
         events += TrackedEvent(AnalyticsEvents.SERVICE_SEARCH, mapOf(AnalyticsParams.QUERY to query))
+    }
+
+    override fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.CONTACT_CHANNEL,
+            mapOf(
+                AnalyticsParams.CHANNEL to channel.value,
+                AnalyticsParams.PROVIDER_ID to providerId,
+                AnalyticsParams.CATEGORY_ID to categoryId,
+            ),
+        )
+    }
+
+    override fun trackLocationPermissionResult(granted: Boolean) {
+        events += TrackedEvent(
+            AnalyticsEvents.LOCATION_PERMISSION_RESULT,
+            mapOf(AnalyticsParams.GRANTED to granted.toString()),
+        )
+    }
+
+    override fun trackAssistantUsed(result: AssistantResultType, categoryId: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.ASSISTANT_USED,
+            mapOf(AnalyticsParams.RESULT to result.value, AnalyticsParams.CATEGORY_ID to categoryId),
+        )
+    }
+
+    override fun trackAssistantUnmatched(service: String) {
+        events += TrackedEvent(AnalyticsEvents.ASSISTANT_UNMATCHED, mapOf(AnalyticsParams.SERVICE to service))
     }
 }

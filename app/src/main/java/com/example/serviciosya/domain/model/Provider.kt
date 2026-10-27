@@ -7,10 +7,16 @@ data class Provider(
     val description: String,
     val categoryId: String,
     val city: String,
+    /** Null for providers created before locations were added; they are listed last. */
+    val latitude: Double?,
+    val longitude: Double?,
     val profileImageUrl: String,
     val phone: String,
     val rating: Double?,
     val reviewCount: Int,
     val verified: Boolean,
     val active: Boolean,
-)
+) {
+    val location: GeoPoint?
+        get() = if (latitude != null && longitude != null) GeoPoint(latitude, longitude) else null
+}
