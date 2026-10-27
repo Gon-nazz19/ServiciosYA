@@ -12,6 +12,15 @@ interface AnalyticsTracker {
     fun trackContactRequest(providerId: String, categoryId: String)
 
     fun trackServiceSearch(query: String)
+
+    /** The user left the app to contact a provider through another channel. */
+    fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String)
+}
+
+enum class ContactChannel(val value: String) {
+    WHATSAPP("whatsapp"),
+    CALL("call"),
+    SHARE("share"),
 }
 
 object AnalyticsEvents {
@@ -19,6 +28,7 @@ object AnalyticsEvents {
     const val PROVIDER_VIEW = "provider_view"
     const val CONTACT_REQUEST = "contact_request"
     const val SERVICE_SEARCH = "service_search"
+    const val CONTACT_CHANNEL = "contact_channel"
 }
 
 object AnalyticsParams {
@@ -26,6 +36,7 @@ object AnalyticsParams {
     const val CATEGORY_NAME = "category_name"
     const val PROVIDER_ID = "provider_id"
     const val QUERY = "query"
+    const val CHANNEL = "channel"
 
     /** Firebase Analytics drops parameter values longer than 100 characters. */
     const val MAX_VALUE_LENGTH = 100

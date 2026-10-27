@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.serviciosya.BuildConfig
 import com.example.serviciosya.data.analytics.FirebaseAnalyticsTracker
 import com.example.serviciosya.data.analytics.NoOpAnalyticsTracker
+import com.example.serviciosya.data.contact.AndroidContactLauncher
 import com.example.serviciosya.data.repository.FirebaseAuthRepository
 import com.example.serviciosya.data.repository.FirestoreCategoryRepository
 import com.example.serviciosya.data.repository.FirestoreProviderRepository
@@ -13,6 +14,7 @@ import com.example.serviciosya.data.repository.UnavailableCategoryRepository
 import com.example.serviciosya.data.repository.UnavailableProviderRepository
 import com.example.serviciosya.data.repository.UnavailableServiceRequestRepository
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.contact.ContactLauncher
 import com.example.serviciosya.domain.repository.AuthRepository
 import com.example.serviciosya.domain.repository.CategoryRepository
 import com.example.serviciosya.domain.repository.ProviderRepository
@@ -67,4 +69,6 @@ class AppContainer(context: Context) {
     } else {
         NoOpAnalyticsTracker()
     }
+
+    val contactLauncher: ContactLauncher = AndroidContactLauncher(context)
 }

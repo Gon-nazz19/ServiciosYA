@@ -2,9 +2,11 @@ package com.example.serviciosya.presentation.provider
 
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
+import com.example.serviciosya.domain.analytics.ContactChannel
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
 import com.example.serviciosya.domain.usecase.GetProviderUseCase
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
+import com.example.serviciosya.testutil.FakeContactLauncher
 import com.example.serviciosya.testutil.FakeProviderRepository
 import com.example.serviciosya.testutil.FakeServiceRequestRepository
 import com.example.serviciosya.testutil.MainDispatcherRule
@@ -27,11 +29,13 @@ class ProviderDetailViewModelTest {
     )
     private val requestRepository = FakeServiceRequestRepository()
     private val analytics = FakeAnalyticsTracker()
+    private val contactLauncher = FakeContactLauncher()
 
     private fun createViewModel(providerId: String = "provider-1") = ProviderDetailViewModel(
         providerId = providerId,
         getProvider = GetProviderUseCase(repository),
         createServiceRequest = CreateServiceRequestUseCase(requestRepository),
+        contactLauncher = contactLauncher,
         analytics = analytics,
     )
 
@@ -202,12 +206,95 @@ class ProviderDetailViewModelTest {
     }
 
     @Test
+    fun `whatsapp opens wa me with the typed message and tracks the channel`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        viewModel.onMessageChange("Necesito un enchufe")
+
+        viewModel.contactByWhatsApp()
+
+        assertEquals(
+            "https://wa.me/5493564000000?text=Hola%20Carlos%20Electricidad%2C%20te%20encontr%C3%A9%20en%20" +
+                "ServiciosYA.%20Necesito%20un%20enchufe",
+            contactLauncher.whatsAppUrls.single(),
+        )
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_CHANNEL).single()
+        assertEquals(ContactChannel.WHATSAPP.value, event.params[AnalyticsParams.CHANNEL])
+        assertEquals("provider-1", event.params[AnalyticsParams.PROVIDER_ID])
+        assertEquals("electricistas", event.params[AnalyticsParams.CATEGORY_ID])
+    }
+
+    @Test
+    fun `whatsapp with an invalid phone shows a message and opens nothing`() = runTest {
+        repository.providerResult = Result.success(testProvider().copy(phone = "123"))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.contactByWhatsApp()
+
+        assertTrue(contactLauncher.whatsAppUrls.isEmpty())
+        assertEquals(ProviderDetailViewModel.INVALID_PHONE_MESSAGE, viewModel.uiState.value.userMessage)
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.CONTACT_CHANNEL).isEmpty())
+    }
+
+    @Test
+    fun `call opens the dialer with the provider phone`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.call()
+
+        assertEquals("3564-000000", contactLauncher.dialedPhones.single())
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_CHANNEL).single()
+        assertEquals(ContactChannel.CALL.value, event.params[AnalyticsParams.CHANNEL])
+    }
+
+    @Test
+    fun `share sends the provider card text`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.share(categoryName = "Electricista")
+
+        assertTrue(contactLauncher.sharedTexts.single().startsWith("Carlos Electricidad - Electricista"))
+        val event = analytics.eventsNamed(AnalyticsEvents.CONTACT_CHANNEL).single()
+        assertEquals(ContactChannel.SHARE.value, event.params[AnalyticsParams.CHANNEL])
+    }
+
+    @Test
+    fun `failed launch shows an error and is not tracked`() = runTest {
+        contactLauncher.result = false
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.contactByWhatsApp()
+
+        assertEquals(ProviderDetailViewModel.WHATSAPP_ERROR_MESSAGE, viewModel.uiState.value.userMessage)
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.CONTACT_CHANNEL).isEmpty())
+    }
+
+    @Test
+    fun `contact buttons do nothing while the provider is not loaded`() = runTest {
+        val viewModel = createViewModel()
+
+        viewModel.contactByWhatsApp()
+        viewModel.call()
+        viewModel.share(categoryName = "Electricista")
+
+        assertTrue(contactLauncher.whatsAppUrls.isEmpty())
+        assertTrue(contactLauncher.dialedPhones.isEmpty())
+        assertTrue(contactLauncher.sharedTexts.isEmpty())
+    }
+
+    @Test
     fun `analytics events never include personal data`() = runTest {
         val viewModel = createViewModel()
         advanceUntilIdle()
         viewModel.onMessageChange("Mi teléfono es 3564-111111")
         viewModel.requestContact(categoryName = "Electricista")
         advanceUntilIdle()
+        viewModel.contactByWhatsApp()
+        viewModel.call()
 
         val allValues = analytics.events.flatMap { it.params.values }
         assertTrue(allValues.none { it.contains("3564") || it.contains("Carlos") || it.contains("user-") })

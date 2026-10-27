@@ -3,6 +3,7 @@ package com.example.serviciosya.testutil
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.analytics.ContactChannel
 
 data class TrackedEvent(val name: String, val params: Map<String, String>)
 
@@ -34,5 +35,16 @@ class FakeAnalyticsTracker : AnalyticsTracker {
 
     override fun trackServiceSearch(query: String) {
         events += TrackedEvent(AnalyticsEvents.SERVICE_SEARCH, mapOf(AnalyticsParams.QUERY to query))
+    }
+
+    override fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.CONTACT_CHANNEL,
+            mapOf(
+                AnalyticsParams.CHANNEL to channel.value,
+                AnalyticsParams.PROVIDER_ID to providerId,
+                AnalyticsParams.CATEGORY_ID to categoryId,
+            ),
+        )
     }
 }

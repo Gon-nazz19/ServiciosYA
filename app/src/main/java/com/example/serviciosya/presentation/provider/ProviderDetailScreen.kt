@@ -3,6 +3,9 @@ package com.example.serviciosya.presentation.provider
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -13,6 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Chat
+import androidx.compose.material.icons.outlined.Call
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,6 +26,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -31,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +56,9 @@ fun ProviderDetailScreen(
     onRetry: () -> Unit,
     onMessageChange: (String) -> Unit,
     onRequestContact: () -> Unit,
+    onWhatsApp: () -> Unit,
+    onCall: () -> Unit,
+    onShare: () -> Unit,
     onUserMessageShown: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -90,6 +101,9 @@ fun ProviderDetailScreen(
                     uiState = uiState,
                     onMessageChange = onMessageChange,
                     onRequestContact = onRequestContact,
+                    onWhatsApp = onWhatsApp,
+                    onCall = onCall,
+                    onShare = onShare,
                 )
             }
         }
@@ -103,6 +117,9 @@ private fun ProviderDetailContent(
     uiState: ProviderDetailUiState,
     onMessageChange: (String) -> Unit,
     onRequestContact: () -> Unit,
+    onWhatsApp: () -> Unit,
+    onCall: () -> Unit,
+    onShare: () -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
     Column(
@@ -173,6 +190,28 @@ private fun ProviderDetailContent(
                 uiState.requestSent -> Text("Solicitud enviada")
                 else -> Text("Solicitar contacto")
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ContactButton(text = "WhatsApp", icon = Icons.AutoMirrored.Outlined.Chat, onClick = onWhatsApp)
+            ContactButton(text = "Llamar", icon = Icons.Outlined.Call, onClick = onCall)
+            ContactButton(text = "Compartir", icon = Icons.Outlined.Share, onClick = onShare)
+        }
+    }
+}
+
+@Composable
+private fun RowScope.ContactButton(text: String, icon: ImageVector, onClick: () -> Unit) {
+    OutlinedButton(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Text(text = text, style = MaterialTheme.typography.labelMedium, maxLines = 1)
         }
     }
 }

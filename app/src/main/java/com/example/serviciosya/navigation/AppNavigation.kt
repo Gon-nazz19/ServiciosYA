@@ -175,6 +175,7 @@ fun AppNavigation(
                         providerId = providerId,
                         providerRepository = container.providerRepository,
                         serviceRequestRepository = container.serviceRequestRepository,
+                        contactLauncher = container.contactLauncher,
                         analytics = container.analyticsTracker,
                     ),
                 )
@@ -189,6 +190,9 @@ fun AppNavigation(
                     onRetry = detailViewModel::loadProvider,
                     onMessageChange = detailViewModel::onMessageChange,
                     onRequestContact = { detailViewModel.requestContact(categoryName) },
+                    onWhatsApp = detailViewModel::contactByWhatsApp,
+                    onCall = detailViewModel::call,
+                    onShare = { detailViewModel.share(categoryName) },
                     onUserMessageShown = detailViewModel::onUserMessageShown,
                     onBack = navController::popBackStack,
                 )

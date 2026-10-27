@@ -4,6 +4,7 @@ import android.os.Bundle
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.analytics.ContactChannel
 import com.google.firebase.analytics.FirebaseAnalytics
 
 class FirebaseAnalyticsTracker(
@@ -30,6 +31,13 @@ class FirebaseAnalyticsTracker(
     override fun trackServiceSearch(query: String) = log(
         AnalyticsEvents.SERVICE_SEARCH,
         AnalyticsParams.QUERY to query,
+    )
+
+    override fun trackContactChannel(channel: ContactChannel, providerId: String, categoryId: String) = log(
+        AnalyticsEvents.CONTACT_CHANNEL,
+        AnalyticsParams.CHANNEL to channel.value,
+        AnalyticsParams.PROVIDER_ID to providerId,
+        AnalyticsParams.CATEGORY_ID to categoryId,
     )
 
     private fun log(event: String, vararg params: Pair<String, String>) {
