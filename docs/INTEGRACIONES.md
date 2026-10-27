@@ -119,7 +119,7 @@ formatDistance(2.34)  // "a 2,3 km"
 distanceBucket(2.34)  // "1-3km": lo único que llega a Analytics
 ```
 
-`FusedLocationProvider` verifica el permiso y pide la ubicación con `Priority.PRIORITY_BALANCED_POWER_ACCURACY`, con un límite de 10 segundos. Guarda el resultado 2 minutos, así el perfil del prestador reutiliza la ubicación que ya pidió el listado.
+`FusedLocationProvider` verifica el permiso y usa la última ubicación conocida, que es instantánea. Si no hay ninguna, pide una nueva con `Priority.PRIORITY_BALANCED_POWER_ACCURACY`, con un límite de 10 segundos. Guarda el resultado 2 minutos, así el perfil del prestador reutiliza la ubicación que ya pidió el listado.
 
 En el listado, si no hay permiso aparece la tarjeta "Activá la ubicación para ver los prestadores más cerca tuyo", con "Activar" y "Ahora no". Si el usuario rechaza el permiso, la app funciona igual que antes, sin distancias.
 
@@ -212,21 +212,34 @@ También se verificó que la app compile **sin** `google-services.json`. En ese 
 
 ### 4.2 Prueba manual
 
-Antes de la prueba hay que completar la configuración de la [sección 5](#5-configuración-necesaria). Para la ubicación, en el emulador se usan las coordenadas de San Francisco (-31.4280, -62.0830) desde *Extended controls → Location*.
+Se hizo en el emulador de Android Studio (API 37) contra el proyecto real de Firebase, con el seed recargado y la ubicación del emulador en el centro de San Francisco (-31.4280, -62.0830). Todos los casos dieron el resultado esperado.
 
-| # | Caso | Resultado esperado | Captura |
+| # | Caso | Resultado | Captura |
 |---|---|---|---|
-| 1 | Abrir una categoría sin permiso y tocar "Activar" → **Permitir** | El listado se ordena por cercanía y muestra "a X km" | `docs/screenshots/tp7-01-distancias.png` |
-| 2 | Repetir y elegir **No permitir** | El listado se ve como antes, sin distancias ni errores | `docs/screenshots/tp7-02-permiso-rechazado.png` |
-| 3 | Abrir un prestador y tocar "Cómo llegar" | El perfil muestra la distancia, y "Cómo llegar" abre la app de mapas en la ubicación del prestador | `docs/screenshots/tp7-03-como-llegar.png` |
-| 4 | Escribir un mensaje y tocar **WhatsApp** | Se abre WhatsApp con el saludo y el mensaje | `docs/screenshots/tp7-04-whatsapp.png` |
-| 5 | Asistente: "Se me cortó la luz en la cocina" | Te sugerimos: Electricista | `docs/screenshots/tp7-05-asistente-electricista.png` |
-| 6 | Asistente: "Pierde agua la canilla del baño" | Te sugerimos: Plomero | `docs/screenshots/tp7-06-asistente-plomero.png` |
-| 7 | Asistente: "La compu no prende" | Te sugerimos: Técnico PC | `docs/screenshots/tp7-07-asistente-tecnico-pc.png` |
-| 8 | Asistente: "Necesito soldar una reja" | Todavía no tenemos herrero en ServiciosYA | `docs/screenshots/tp7-08-asistente-herrero.png` |
-| 9 | Desde el caso 5, "Ver prestadores" → un prestador | El campo de mensaje ya tiene el texto sugerido | `docs/screenshots/tp7-09-mensaje-sugerido.png` |
+| 1 | Abrir Plomero con el permiso concedido | El listado se ordena por cercanía y no por calificación: Aguas Claras (a 960 m) queda antes que Plomería García (a 2,5 km), aunque tiene menos estrellas | `tp7-01-distancias.png` |
+| 2 | Abrir Plomero sin permiso | Aparece el aviso "Activá la ubicación…", con "Ahora no" y "Activar". El listado queda en el orden de siempre | `tp7-02-aviso-ubicacion.png` |
+| 3 | Tocar **Activar** | El sistema pide la ubicación **aproximada** | `tp7-03-permiso-aproximado.png` |
+| 4 | Elegir **No permitir** | El listado sigue funcionando, sin distancias ni errores | `tp7-04-permiso-rechazado.png` |
+| 5 | Abrir un prestador | El perfil muestra la distancia, "Cómo llegar" y los botones WhatsApp, Llamar y Compartir | `tp7-05-perfil.png` |
+| 6 | Tocar **Cómo llegar** | Google Maps se abre con un pin en el prestador y su nombre | `tp7-06-como-llegar.png` |
+| 7 | Escribir un mensaje y tocar **WhatsApp** | Se abre el chat con +54 9 3564 40-0202 y el texto "Hola Aguas Claras Servicios, te encontré en ServiciosYA. Necesito cambiar el flexible de la cocina" | `tp7-07-whatsapp.png` |
+| 8 | Asistente: "se me cortó la luz en la cocina" | Te sugerimos: **Electricista**, con el mensaje redactado | `tp7-08-asistente-electricista.png` |
+| 9 | Asistente: "Pierde agua la canilla del baño" | Te sugerimos: **Plomero** | `tp7-09-asistente-plomero.png` |
+| 10 | Asistente: "La compu no prende" | Te sugerimos: **Técnico PC** | `tp7-10-asistente-tecnico-pc.png` |
+| 11 | Asistente: "Necesito soldar una reja" | "Todavía no tenemos *herrero* en ServiciosYA" | `tp7-11-asistente-herrero.png` |
+| 12 | Desde el caso 10, "Ver prestadores" → el más cercano | El perfil muestra la distancia y el mensaje de la IA ya escrito en el campo | `tp7-12-mensaje-sugerido.png` |
 
-Los teléfonos del seed son ficticios. Para probar WhatsApp de verdad, se cambia el teléfono de **un** prestador por el de un integrante del grupo directamente en la consola de Firestore, sin commitearlo.
+Los casos 10 → 12 recorren el flujo completo del [diagrama de secuencia](ARQUITECTURA.md#62-flujo-del-asistente-las-tres-integraciones-juntas): el asistente elige la categoría, el listado ordena por cercanía y el perfil queda listo para contactar por WhatsApp.
+
+| Distancias | Aviso de ubicación | Permiso aproximado | Permiso rechazado |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/tp7-01-distancias.png" width="180"> | <img src="screenshots/tp7-02-aviso-ubicacion.png" width="180"> | <img src="screenshots/tp7-03-permiso-aproximado.png" width="180"> | <img src="screenshots/tp7-04-permiso-rechazado.png" width="180"> |
+| **Perfil** | **Cómo llegar** | **WhatsApp** | **Mensaje sugerido** |
+| <img src="screenshots/tp7-05-perfil.png" width="180"> | <img src="screenshots/tp7-06-como-llegar.png" width="180"> | <img src="screenshots/tp7-07-whatsapp.png" width="180"> | <img src="screenshots/tp7-12-mensaje-sugerido.png" width="180"> |
+| **Asistente: Electricista** | **Asistente: Plomero** | **Asistente: Técnico PC** | **Asistente: herrero** |
+| <img src="screenshots/tp7-08-asistente-electricista.png" width="180"> | <img src="screenshots/tp7-09-asistente-plomero.png" width="180"> | <img src="screenshots/tp7-10-asistente-tecnico-pc.png" width="180"> | <img src="screenshots/tp7-11-asistente-herrero.png" width="180"> |
+
+Los teléfonos del seed son ficticios. Para probar WhatsApp con un chat real, se cambia el teléfono de **un** prestador por el de un integrante del grupo directamente en la consola de Firestore, sin commitearlo.
 
 ## 5. Configuración necesaria
 

@@ -35,7 +35,8 @@ class FusedLocationProvider(
         cached?.let { if (now - cachedAtMillis < CACHE_MILLIS) return it }
         val cancellation = CancellationTokenSource()
         val location = try {
-            withTimeoutOrNull(TIMEOUT_MILLIS) {
+            // The last known fix is instant and precise enough for distances; ask for a new one only without it.
+            client.lastLocation.await() ?: withTimeoutOrNull(TIMEOUT_MILLIS) {
                 client.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancellation.token).await()
             }
         } catch (e: CancellationException) {

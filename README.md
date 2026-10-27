@@ -20,6 +20,8 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 | <img src="docs/screenshots/01-login.png" width="220" alt="Pantalla de inicio de sesión"> | <img src="docs/screenshots/02-home.png" width="220" alt="Pantalla principal con las categorías"> | <img src="docs/screenshots/03-prestadores.png" width="220" alt="Listado de plomeros ordenados por calificación"> |
 | **Perfil del prestador** | **Búsqueda** | **Mis solicitudes** |
 | <img src="docs/screenshots/04-perfil-prestador.png" width="220" alt="Perfil del prestador con el botón Solicitar contacto"> | <img src="docs/screenshots/05-busqueda.png" width="220" alt="Resultados de búsqueda de categorías y prestadores"> | <img src="docs/screenshots/06-mis-solicitudes.png" width="220" alt="Listado de solicitudes enviadas con su estado"> |
+| **Asistente con IA** | **Prestadores por cercanía** | **Contacto por WhatsApp** |
+| <img src="docs/screenshots/tp7-08-asistente-electricista.png" width="220" alt="El asistente sugiere Electricista y redacta el mensaje"> | <img src="docs/screenshots/tp7-01-distancias.png" width="220" alt="Plomeros ordenados por distancia"> | <img src="docs/screenshots/tp7-07-whatsapp.png" width="220" alt="WhatsApp con el mensaje armado para el prestador"> |
 
 ## Funcionalidades
 
