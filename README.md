@@ -3,15 +3,16 @@
 **Encontrá un prestador de tu ciudad por rubro y pedile contacto en pocos toques.**
 
 ![Android](https://img.shields.io/badge/Android-7.0%2B%20(API%2024)-3DDC84?logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.2.10-7F52FF?logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-Auth%20%C2%B7%20Firestore%20%C2%B7%20Analytics-FFCA28?logo=firebase&logoColor=black)
+![Firebase](https://img.shields.io/badge/Firebase-Auth%20%C2%B7%20Firestore%20%C2%B7%20Analytics%20%C2%B7%20AI%20Logic-FFCA28?logo=firebase&logoColor=black)
+![Google Maps](https://img.shields.io/badge/Google-Maps%20%C2%B7%20Location-4285F4?logo=googlemaps&logoColor=white)
 
 ServiciosYA es una app Android que conecta a personas que necesitan resolver un trabajo puntual en su casa (un enchufe que no anda, una pérdida de agua, un aire acondicionado que no enfría) con prestadores de servicios de su ciudad.
 
 Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsApp o de buscar en redes. Esa búsqueda es lenta, no deja registro y no permite comparar. ServiciosYA reúne a los prestadores por rubro, muestra su calificación y permite pedirles contacto desde la app.
 
-> Proyecto desarrollado para el **Trabajo Práctico 2 de Arquitecturas Móviles 2026** (UTN – Facultad Regional San Francisco): aplicación del ciclo **Build-Measure-Learn** de *Lean Mobile App Development*.
+> Proyecto desarrollado para **Arquitecturas Móviles 2026** (UTN – Facultad Regional San Francisco): el ciclo **Build-Measure-Learn** de *Lean Mobile App Development* (TP2), la estrategia de escalabilidad (TP3) y la integración de APIs y SDKs (TP7).
 
 ## Capturas
 
@@ -25,15 +26,17 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 
 - **Cuenta de usuario:** registro, inicio de sesión y cierre de sesión con email y contraseña. La sesión queda guardada, así que al volver a abrir la app se entra directo.
 - **Categorías:** Electricista, Plomero, Aire acondicionado, Técnico PC y Jardinero.
-- **Prestadores por rubro:** listado ordenado por calificación, con ciudad y rating.
-- **Perfil del prestador:** descripción del servicio, calificación y ciudad.
+- **Prestadores por rubro:** listado ordenado por calificación, con ciudad y rating. Si el usuario activa la ubicación, se ordena por cercanía y muestra la distancia ("a 2,3 km").
+- **Perfil del prestador:** descripción del servicio, calificación, ciudad, mapa con la ubicación y botón "Cómo llegar".
+- **Contacto directo:** botones para escribirle por **WhatsApp** con el mensaje ya armado, **llamar** o **compartir** el prestador.
+- **Asistente con IA (Gemini):** el usuario cuenta su problema con sus palabras y la app le sugiere la categoría y le redacta el mensaje para el prestador.
 - **Solicitud de contacto:** con un mensaje opcional de hasta 500 caracteres. La app evita que se envíe dos veces por un doble toque.
 - **Mis solicitudes:** el historial de pedidos con su estado.
 - **Búsqueda:** por nombre de categoría o de prestador, sin importar tildes ni mayúsculas.
 - **Navegación inferior:** Inicio, Solicitudes y Perfil.
 - **Mensajes claros en español:** validaciones de formularios, errores de conexión y estados vacíos, con opción de reintentar.
 - **Privacidad:** cada usuario ve solo sus propias solicitudes. Lo garantizan las reglas de seguridad de Firestore, no solo la app.
-- **Medición:** eventos de Google Analytics en cada paso del recorrido (`category_view`, `provider_view`, `contact_request` y `service_search`).
+- **Medición:** eventos de Google Analytics en cada paso del recorrido (`category_view`, `provider_view`, `contact_request` y `service_search`), y de las integraciones del TP7 (`contact_channel`, `location_permission_result`, `assistant_used` y `assistant_unmatched`). Nunca se envían datos personales ni coordenadas.
 
 ## Cómo funciona
 
@@ -53,6 +56,8 @@ flowchart LR
 | App | Kotlin, Jetpack Compose, Material 3, Navigation Compose |
 | Estado y asincronía | ViewModel, StateFlow, Kotlin Coroutines |
 | Backend | Firebase Authentication, Cloud Firestore, Google Analytics (Firebase BoM 33.16.0) |
+| APIs y SDKs (TP7) | Firebase AI Logic con Gemini (`gemini-3.5-flash`), Google Play Services Location, Maps Compose, Intents de Android (WhatsApp `wa.me`, marcador y compartir) |
+| Nube (TP3) | Azure Container Apps para el laboratorio de escalabilidad |
 | Seguridad | Firestore Security Rules, versionadas y con tests |
 | Herramientas | Node.js con el Firebase Admin SDK (seed, reglas y métricas) y Python (simulación de usuarios) |
 | Testing | JUnit 4, kotlinx-coroutines-test, emuladores de Firebase, `@firebase/rules-unit-testing` |
@@ -80,7 +85,7 @@ ServiciosYA/
 │       ├── main/           Código (presentation, domain, data, di, navigation)
 │       ├── test/           Tests unitarios
 │       └── androidTest/    Tests de repositorios contra los emuladores de Firebase
-├── docs/                   Entregables del TP2 y TP3 y documentación técnica
+├── docs/                   Entregables del TP2, TP3 y TP7 y documentación técnica
 ├── tools/
 │   ├── seed/               Carga de categorías y prestadores de prueba
 │   ├── firestore-rules/    Tests y publicación de las reglas de seguridad
@@ -95,7 +100,7 @@ ServiciosYA/
 ### Requisitos
 
 - Android Studio y un dispositivo o emulador con **Android 7.0 (API 24) o superior**.
-- **JDK 21** para Gradle (*Settings → Build Tools → Gradle → Gradle JDK*). El JDK 25 que trae Android Studio no es compatible con Gradle 8.13.
+- **JDK 21** para Gradle (*Settings → Build Tools → Gradle → Gradle JDK*). El proyecto usa Gradle 9.6, AGP 9.4.1 y Kotlin 2.2.10.
 - **Node.js 22 o superior**, solo para las herramientas de `tools/`.
 
 ### Pasos
@@ -112,9 +117,10 @@ ServiciosYA/
       ```properties
       MAPS_API_KEY=AIza...
       ```
-4. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
-5. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
-6. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
+4. *(Opcional)* Habilitar el asistente con IA: en la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
+5. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
+6. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
+7. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:
    ```bash
    ./gradlew installDebug
    ```
@@ -123,7 +129,7 @@ ServiciosYA/
 
 | Nivel | Qué cubre | Comando |
 |---|---|---|
-| Unitarios | ViewModels, casos de uso, validaciones, mapeos y navegación | `./gradlew testDebugUnitTest` |
+| Unitarios | ViewModels, casos de uso, validaciones, mapeos, navegación, distancias, links de contacto y respuestas de la IA | `./gradlew testDebugUnitTest` |
 | Reglas de Firestore | Qué puede leer y escribir cada usuario | `cd tools/firestore-rules && npm test` |
 | Escalabilidad TP3 | Balanceo, redundancia, autoescalado y carga, en Docker local y en Azure Container Apps | [Laboratorio](tools/scaling-lab/README.md) |
 | Repositorios | Repositorios reales contra los emuladores de Auth y Firestore | `cd tools/firestore-rules && npm run test:android` |
@@ -141,7 +147,7 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 
 - **Modo prestador:** alta de perfil y bandeja para aceptar o rechazar solicitudes.
 - **Notificaciones push** al prestador cuando recibe una solicitud y al cliente cuando se la aceptan.
-- **Búsquedas sin resultado:** registrarlas y ofrecer "avisame cuando haya" para decidir qué rubros sumar.
+- **Búsquedas sin resultado:** el asistente ya registra los servicios que faltan (`assistant_unmatched`). Falta ofrecer "avisame cuando haya".
 - **Reseñas reales**, y disponibilidad y rotación en el listado, para que la demanda no se concentre siempre en los mismos prestadores.
 
 ## Documentación
@@ -150,8 +156,9 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 |---|---|
 | [`docs/MVP.md`](docs/MVP.md) | Definición del MVP: problema, hipótesis, alcance y métricas de éxito |
 | [`docs/RESULTADOS.md`](docs/RESULTADOS.md) | Resultados de la prueba, hallazgos y decisión de pivotar o perseverar |
-| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada y diagrama de escalabilidad (TP3) |
+| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada, diagrama de escalabilidad (TP3) y de integraciones (TP7) |
 | [`docs/ESCALABILIDAD.md`](docs/ESCALABILIDAD.md) | TP3: estrategia de escalabilidad, configuración en la nube y mediciones |
+| [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md) | TP7: análisis, selección, implementación y pruebas de las integraciones de APIs y SDKs |
 | [`docs/PRUEBA_USUARIOS.md`](docs/PRUEBA_USUARIOS.md) | Protocolo para la prueba con usuarios reales |
 | [`docs/TESTING.md`](docs/TESTING.md) | Estrategia de testing y checklist de prueba manual |
 | [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md) | Configuración de Firebase |
