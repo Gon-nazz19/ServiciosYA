@@ -516,3 +516,32 @@ Si Gemini falla o no está habilitado, el usuario ve "No pudimos analizar tu con
 | **Google Play Services Location** | Distancia a cada prestador, listado ordenado por cercanía y "Cómo llegar" | **H2**: 5 de 15 prestadores recibieron todas las solicitudes | % de `location_permission_result` con `granted = true`. Reparto de `contact_request` entre prestadores antes y después |
 | **Contacto directo** (WhatsApp, llamada, compartir) | Contactar al prestador desde el perfil, con el mensaje ya escrito | **H4**: la solicitud quedaba *Pendiente* para siempre porque nadie la recibía | Distribución de `contact_channel` por canal (`whatsapp`, `call`, `share`) |
 | **Gemini con Firebase AI Logic** | El usuario describe su problema y la app sugiere la categoría y redacta el mensaje | **H5**: el 50 % de las solicitudes llegó sin mensaje. **H3**: búsquedas de servicios que no existen | Tasa de `assistant_used` con `result = matched`. Cantidad de `assistant_unmatched` por servicio. % de solicitudes con mensaje antes y después, y `contact_request` con `from_assistant = true` |
+
+## 7. Anuncios nativos (AdMob)
+
+Alcance cerrado: **solo anuncios nativos en el listado de prestadores**. No hay suscripciones, Play Billing, "Destacado", ranking, "Quitar anuncios" ni backend.
+
+Sigue el mismo patrón que las integraciones del TP7: el SDK entra en **Datos** detrás de una interfaz del **Dominio**, lo elige `AppContainer` y, si no está disponible, se usa una alternativa que no hace nada.
+
+| Capa | Pieza | Qué hace |
+|---|---|---|
+| Dominio | `AdsProvider` / `AdResult` | Pide un anuncio nativo; el resultado es `Loaded` o `NoAd(reason)` |
+| Dominio | `AdPlacement` | Lógica pura: en qué posiciones del listado va un anuncio |
+| Datos | `AdMobAdsProvider` | Implementación con el SDK de Google (GMA Next-Gen). Registra impresión y click |
+| Datos | `NoOpAdsProvider` | No pide ni muestra nada |
+| DI | `AppContainer` | Usa `AdMobAdsProvider` si `ADS_ENABLED`, si no `NoOpAdsProvider` |
+| Presentación | `ProvidersViewModel` | Después de cargar los prestadores pide los anuncios, sin hacer esperar a la lista |
+| Presentación | `providerListEntries` / `NativeAdCard` | Intercala la tarjeta "Anuncio" entre los prestadores |
+
+**Flujo.** El listado carga y se muestra. Después el `ProvidersViewModel` pide `AdPlacement.positions(n).size` anuncios, y cada uno que carga se intercala en el listado. Si uno falla, simplemente no aparece: no queda espacio vacío ni error, y se registra `ad_load_failed`.
+
+**Reglas de producto.**
+
+- Solo anuncios nativos, con la etiqueta "Anuncio" siempre visible. Sin intersticiales ni banners.
+- Solo en el listado de prestadores: nunca en login, registro, perfil del prestador, "Mis solicitudes", asistente ni junto a los botones de contacto.
+- Una tarjeta cada 6 prestadores, entre prestadores (nunca al final), máximo 3 por listado. Un listado de 6 prestadores o menos no lleva anuncios.
+- La solicitud de anuncio no lleva datos del usuario (ni uid, ni ubicación, ni búsquedas).
+
+**Configuración.** En debug se usan solo los IDs de prueba de Google. Los IDs reales se leen de `ADMOB_APP_ID` y `ADMOB_NATIVE_UNIT_ID` en `local.properties` o `~/.gradle/gradle.properties`, fuera del repositorio. Si faltan en release, `ADS_ENABLED` queda en `false` y se usa `NoOpAdsProvider`.
+
+**Eventos de Analytics**, sin datos del usuario: `ad_impression` y `ad_click` (sin parámetros) y `ad_load_failed` con `reason` corto (`no_fill`, `network`, `timeout` o `error`). Si los anuncios están desactivados no se registra ninguna falla.
