@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.serviciosya.domain.location.formatDistance
 import com.example.serviciosya.domain.model.Provider
+import com.example.serviciosya.presentation.components.FeaturedBadge
 import com.example.serviciosya.presentation.components.InitialsAvatar
 import com.example.serviciosya.presentation.components.formatRating
 
@@ -109,6 +110,7 @@ fun ProvidersScreen(
                             is ProviderListEntry.ProviderEntry -> ProviderCard(
                                 provider = entry.item.provider,
                                 distanceKm = entry.item.distanceKm,
+                                isFeatured = entry.item.isFeatured,
                                 categoryName = categoryName,
                                 onClick = { onProviderClick(entry.item.provider) },
                             )
@@ -125,6 +127,7 @@ fun ProvidersScreen(
 private fun ProviderCard(
     provider: Provider,
     distanceKm: Double?,
+    isFeatured: Boolean,
     categoryName: String,
     onClick: () -> Unit,
 ) {
@@ -141,6 +144,7 @@ private fun ProviderCard(
             InitialsAvatar(name = provider.name)
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(text = provider.name, style = MaterialTheme.typography.titleMedium)
+                if (isFeatured) FeaturedBadge()
                 formatRating(provider.rating)?.let { rating ->
                     Text(
                         text = rating,

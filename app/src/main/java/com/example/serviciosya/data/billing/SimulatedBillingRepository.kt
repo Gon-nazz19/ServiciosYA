@@ -46,22 +46,22 @@ class SimulatedBillingRepository(
         }
 
     override suspend fun purchase(plan: PlanId): PurchaseResult {
-        val user = auth.observeCurrentUser().first() ?: return PurchaseResult.Error(REASON_NOT_SIGNED_IN)
-        if (waiting != null) return PurchaseResult.Error(REASON_BUSY)
+        val user = auth.observeCurrentUser().first() ?: return PurchaseResult.Error(PurchaseResult.Error.NOT_SIGNED_IN)
+        if (waiting != null) return PurchaseResult.Error(PurchaseResult.Error.BUSY)
         val catalogPlan = PricingCatalog.plan(plan)
 
         // A provider plan needs a provider profile; check it before asking for any payment.
         val provider: Provider? = if (catalogPlan.audience == Audience.PROVIDER) {
             providerAccounts.findByUserId(user.id)
-                .getOrElse { return PurchaseResult.Error(REASON_NETWORK) }
-                ?: return PurchaseResult.Error(REASON_NOT_A_PROVIDER)
+                .getOrElse { return PurchaseResult.Error(PurchaseResult.Error.NETWORK) }
+                ?: return PurchaseResult.Error(PurchaseResult.Error.NOT_A_PROVIDER)
         } else {
             null
         }
 
         return when (awaitOutcome(PendingCheckout(catalogPlan))) {
             CheckoutOutcome.APPROVED -> grant(user.id, plan, provider)
-            CheckoutOutcome.DECLINED -> PurchaseResult.Error(REASON_DECLINED)
+            CheckoutOutcome.DECLINED -> PurchaseResult.Error(PurchaseResult.Error.DECLINED)
             CheckoutOutcome.PENDING -> PurchaseResult.Pending
             CheckoutOutcome.CANCELLED -> PurchaseResult.Cancelled
         }
@@ -73,7 +73,7 @@ class SimulatedBillingRepository(
 
     override suspend fun restore(): Result<Entitlements> {
         val user = auth.observeCurrentUser().first()
-            ?: return Result.failure(IllegalStateException(REASON_NOT_SIGNED_IN))
+            ?: return Result.failure(IllegalStateException(PurchaseResult.Error.NOT_SIGNED_IN))
         return store.load(user.id).onSuccess { entitlements ->
             // Best effort: bring the provider profile back in line with the plan that is still valid.
             val featured = entitlements.featured
@@ -100,27 +100,17 @@ class SimulatedBillingRepository(
 
     private suspend fun grant(userId: String, planId: PlanId, provider: Provider?): PurchaseResult {
         val subscription = Subscription.start(PricingCatalog.plan(planId), now())
-        val current = store.load(userId).getOrElse { return PurchaseResult.Error(REASON_STORE) }
+        val current = store.load(userId).getOrElse { return PurchaseResult.Error(PurchaseResult.Error.STORE) }
         store.save(userId, current.withPurchase(subscription)).onFailure {
-            return PurchaseResult.Error(REASON_STORE)
+            return PurchaseResult.Error(PurchaseResult.Error.STORE)
         }
         val until = subscription.expiresAtMillis
         if (provider != null && until != null) {
             providerAccounts.setFeaturedUntil(provider.id, until).onFailure {
                 // The plan is saved; restoring purchases retries this step.
-                return PurchaseResult.Error(REASON_SYNC)
+                return PurchaseResult.Error(PurchaseResult.Error.SYNC)
             }
         }
         return PurchaseResult.Success
-    }
-
-    companion object {
-        const val REASON_NOT_SIGNED_IN = "not_signed_in"
-        const val REASON_NOT_A_PROVIDER = "not_a_provider"
-        const val REASON_DECLINED = "declined"
-        const val REASON_BUSY = "busy"
-        const val REASON_NETWORK = "network"
-        const val REASON_STORE = "store"
-        const val REASON_SYNC = "sync"
     }
 }

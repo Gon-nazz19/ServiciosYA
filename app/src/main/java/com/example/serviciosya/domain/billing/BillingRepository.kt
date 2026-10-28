@@ -11,8 +11,19 @@ sealed interface PurchaseResult {
     /** The payment is not confirmed yet: nothing is granted until it is. */
     data object Pending : PurchaseResult
 
-    /** [reason] is a short code such as "declined" or "not_a_provider", never free text. */
-    data class Error(val reason: String) : PurchaseResult
+    /** [reason] is a short code such as [DECLINED] or [NOT_A_PROVIDER], never free text. */
+    data class Error(val reason: String) : PurchaseResult {
+        companion object {
+            const val NOT_SIGNED_IN = "not_signed_in"
+            const val NOT_A_PROVIDER = "not_a_provider"
+            const val DECLINED = "declined"
+            const val BUSY = "busy"
+            const val NETWORK = "network"
+            const val STORE = "store"
+            const val SYNC = "sync"
+            const val UNAVAILABLE = "unavailable"
+        }
+    }
 }
 
 /**

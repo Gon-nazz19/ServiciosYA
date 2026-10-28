@@ -33,4 +33,12 @@ class RoutesTest {
         assertEquals("category/plomeros", Routes.category("plomeros"))
         assertEquals("provider/abc", Routes.provider("abc"))
     }
+
+    @Test
+    fun `plan screens are opened from the profile and do not show the bottom bar`() {
+        assertEquals("ad-free", Routes.AD_FREE)
+        assertEquals("my-plan", Routes.MY_PLAN)
+        assertFalse(isTopLevelRoute(Routes.AD_FREE))
+        assertFalse(isTopLevelRoute(Routes.MY_PLAN))
+    }
 }

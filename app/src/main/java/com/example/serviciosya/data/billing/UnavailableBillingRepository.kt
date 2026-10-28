@@ -11,15 +11,11 @@ import kotlinx.coroutines.flow.flowOf
 class UnavailableBillingRepository : BillingRepository {
     override fun observeSubscription(): Flow<Entitlements> = flowOf(Entitlements.NONE)
 
-    override suspend fun purchase(plan: PlanId): PurchaseResult = PurchaseResult.Error(REASON_UNAVAILABLE)
+    override suspend fun purchase(plan: PlanId): PurchaseResult = PurchaseResult.Error(PurchaseResult.Error.UNAVAILABLE)
 
     override suspend fun restore(): Result<Entitlements> = Result.failure(
         IllegalStateException(
             "Firebase no está configurado. Agregá app/google-services.json para usar los planes.",
         ),
     )
-
-    private companion object {
-        const val REASON_UNAVAILABLE = "unavailable"
-    }
 }

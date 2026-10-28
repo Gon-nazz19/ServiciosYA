@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import com.example.serviciosya.domain.location.formatDistance
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
+import com.example.serviciosya.presentation.components.FeaturedBadge
 import com.example.serviciosya.presentation.components.InitialsAvatar
 import com.example.serviciosya.presentation.components.formatRating
 
@@ -153,6 +154,7 @@ private fun ProviderDetailContent(
                 style = MaterialTheme.typography.headlineSmall,
                 textAlign = TextAlign.Center,
             )
+            if (provider.isFeaturedAt(System.currentTimeMillis())) FeaturedBadge()
             formatRating(provider.rating)?.let {
                 Text(text = it, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
             }

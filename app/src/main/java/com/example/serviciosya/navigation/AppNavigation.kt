@@ -33,6 +33,15 @@ import com.example.serviciosya.presentation.assistant.AssistantViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
 import com.example.serviciosya.presentation.auth.RegisterScreen
+import com.example.serviciosya.presentation.billing.AdFreeScreen
+import com.example.serviciosya.presentation.billing.AdFreeViewModel
+import com.example.serviciosya.presentation.billing.AdFreeViewModelFactory
+import com.example.serviciosya.presentation.billing.MyPlanScreen
+import com.example.serviciosya.presentation.billing.MyPlanViewModel
+import com.example.serviciosya.presentation.billing.MyPlanViewModelFactory
+import com.example.serviciosya.presentation.billing.ProfilePlansViewModel
+import com.example.serviciosya.presentation.billing.ProfilePlansViewModelFactory
+import com.example.serviciosya.presentation.billing.SimulatedCheckoutHost
 import com.example.serviciosya.presentation.home.HomeScreen
 import com.example.serviciosya.presentation.home.HomeViewModel
 import com.example.serviciosya.presentation.provider.ProviderDetailScreen
@@ -237,15 +246,70 @@ fun AppNavigation(
             }
             composable(Routes.PROFILE) {
                 authState.user?.let { user ->
+                    // Keyed by user so a restored tab never shows the plans of another account.
+                    val plansViewModel: ProfilePlansViewModel = viewModel(
+                        key = "profile-plans-${user.id}",
+                        factory = ProfilePlansViewModelFactory(
+                            userId = user.id,
+                            billing = container.billingRepository,
+                            providerAccounts = container.providerAccountRepository,
+                        ),
+                    )
+                    val plansState by plansViewModel.uiState.collectAsStateWithLifecycle()
                     ProfileScreen(
                         user = user,
                         isLoading = authState.isSubmitting,
                         errorMessage = authState.errorMessage,
                         onSignOut = authViewModel::signOut,
+                        plans = plansState,
+                        onAdFree = { navController.navigate(Routes.AD_FREE) },
+                        onMyPlan = { navController.navigate(Routes.MY_PLAN) },
+                    )
+                }
+            }
+            composable(Routes.AD_FREE) {
+                authState.user?.let { user ->
+                    val adFreeViewModel: AdFreeViewModel = viewModel(
+                        key = "ad-free-${user.id}",
+                        factory = AdFreeViewModelFactory(
+                            billing = container.billingRepository,
+                            analytics = container.analyticsTracker,
+                        ),
+                    )
+                    val adFreeState by adFreeViewModel.uiState.collectAsStateWithLifecycle()
+                    AdFreeScreen(
+                        uiState = adFreeState,
+                        onSelectPlan = adFreeViewModel::purchase,
+                        onRestore = adFreeViewModel::restore,
+                        onMessageShown = adFreeViewModel::onMessageShown,
+                        onBack = navController::popBackStack,
+                    )
+                }
+            }
+            composable(Routes.MY_PLAN) {
+                authState.user?.let { user ->
+                    val myPlanViewModel: MyPlanViewModel = viewModel(
+                        key = "my-plan-${user.id}",
+                        factory = MyPlanViewModelFactory(
+                            userId = user.id,
+                            billing = container.billingRepository,
+                            providerAccounts = container.providerAccountRepository,
+                            analytics = container.analyticsTracker,
+                        ),
+                    )
+                    val myPlanState by myPlanViewModel.uiState.collectAsStateWithLifecycle()
+                    MyPlanScreen(
+                        uiState = myPlanState,
+                        onSelectPlan = myPlanViewModel::purchase,
+                        onRestore = myPlanViewModel::restore,
+                        onMessageShown = myPlanViewModel::onMessageShown,
+                        onBack = navController::popBackStack,
                     )
                 }
             }
         }
+        // The simulated payment screen. With Google Play Billing the container has none, so nothing is drawn.
+        SimulatedCheckoutHost(container.simulatedCheckout)
     }
 }
 

@@ -9,6 +9,8 @@ internal object Routes {
     const val REQUESTS = "requests"
     const val CATEGORY = "category/{categoryId}"
     const val PROVIDER = "provider/{providerId}"
+    const val AD_FREE = "ad-free"
+    const val MY_PLAN = "my-plan"
 
     fun category(categoryId: String) = "category/$categoryId"
     fun provider(providerId: String) = "provider/$providerId"
