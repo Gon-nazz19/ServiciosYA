@@ -545,3 +545,54 @@ Sigue el mismo patrón que las integraciones del TP7: el SDK entra en **Datos** 
 **Configuración.** En debug se usan solo los IDs de prueba de Google. Los IDs reales se leen de `ADMOB_APP_ID` y `ADMOB_NATIVE_UNIT_ID` en `local.properties` o `~/.gradle/gradle.properties`, fuera del repositorio. Si faltan en release, `ADS_ENABLED` queda en `false` y se usa `NoOpAdsProvider`.
 
 **Eventos de Analytics**, sin datos del usuario: `ad_impression` y `ad_click` (sin parámetros) y `ad_load_failed` con `reason` corto (`no_fill`, `network`, `timeout` o `error`). Si los anuncios están desactivados no se registra ninguna falla.
+
+## 8. Suscripciones y planes sin anuncios (pasarela simulada)
+
+Dos tipos de plan, pagados con una **pasarela de pago simulada**: no se usa Google Play Billing porque todavía no hay cuenta de Play Console. La simulación se puede reemplazar por Play Billing sin tocar el dominio ni las pantallas.
+
+| Quién | Plan | Precio de referencia | Qué da |
+|---|---|---|---|
+| Prestador | Destacado semanal | $ 3.999 | Insignia "Destacado" y lugar prioritario en el listado |
+| Prestador | **Destacado mensual** ("Mejor oferta") | $ 9.999 | Igual, con 7 días de prueba gratis |
+| Prestador | Destacado anual | $ 99.999 | Igual (equivale a $ 8.333 por mes) |
+| Cliente | Sin anuncios anual | $ 4.999 | Oculta los anuncios durante 1 año |
+| Cliente | Sin anuncios de por vida | $ 14.999 | Oculta los anuncios para siempre: pago único, nunca vence (equivale a 3 años del anual) |
+
+Un prestador con plan activo tampoco ve anuncios. Si el cliente compra el de por vida estando con el anual, el de por vida prevalece y el anual no lo reemplaza.
+
+| Capa | Pieza | Qué hace |
+|---|---|---|
+| Dominio | `PricingCatalog`, `Subscription`, `Entitlements` | Planes, precios, vigencia (nula si es de por vida), prueba gratis y qué oculta los anuncios |
+| Dominio | `FeaturedRanking` | Lógica pura que decide cómo suben los destacados en el listado |
+| Dominio | `BillingRepository`, `SimulatedCheckout`, `ProviderAccountRepository` | Comprar, restaurar y observar el plan; la pasarela simulada; asociar la cuenta a un prestador |
+| Datos | `SimulatedBillingRepository` | La pasarela simulada: espera que el usuario elija el resultado del pago |
+| Datos | `FirestoreSubscriptionStore`, `FirestoreProviderAccountRepository` | Guardan el plan y la fecha de "Destacado" |
+| Datos | `UnavailableBillingRepository`, `UnavailableProviderAccountRepository` | Alternativas que no rompen la app si Firebase no está configurado |
+| DI | `AppContainer` | Elige la implementación y expone `simulatedCheckout` |
+| Presentación | `SimulatedCheckoutHost`, `MyPlanScreen`, `AdFreeScreen`, `FeaturedBadge` | La hoja "Pasarela de pago simulada", las dos pantallas del Perfil y la insignia |
+
+**Pasarela simulada.** Muestra el plan y el precio, una tarjeta ficticia y cuatro botones: aprobado, rechazado, pendiente o cancelar. No hay datos reales de tarjeta y nada sale de la app. Solo un pago **aprobado** otorga el plan; rechazado, pendiente y cancelado no otorgan nada. "Restaurar compras" vuelve a leer lo guardado, incluido el plan de por vida.
+
+**Cómo reemplazarla por Play Billing.** Alcanza con una nueva implementación de `BillingRepository` y elegirla en `AppContainer`. Con Play Billing el contenedor no tiene `SimulatedCheckout`, así que `SimulatedCheckoutHost` no dibuja nada. Las pantallas y el dominio no cambian.
+
+**Ranking del listado.** Se aplica después del orden por cercanía.
+
+- Con 5 resultados o menos no se reordena.
+- Se eligen hasta 2 destacados con plan vigente, los más cercanos al usuario (sin ubicación, el orden que ya traen).
+- Los que estaban más abajo suben a las posiciones 4 y 5, y los demás conservan su orden detrás. Un destacado que no entra en los 2 cupos queda en su lugar, solo con la insignia.
+- Un plan vencido no cuenta.
+
+**Anuncios.** Con un plan activo (de cliente o de prestador) el listado ni siquiera pide anuncios, y si el plan se activa con la lista abierta, los anuncios que se veían desaparecen.
+
+**Datos en Firestore.**
+
+- `subscriptions/{uid}`: un documento por usuario con dos ranuras, `adFree` (planes de cliente) y `featured` (planes de prestador).
+- `providers/{id}.featuredUntil`: hasta cuándo está destacado el prestador. Es lo que ven los demás usuarios.
+- Una cuenta es de prestador si existe un prestador con `userId` igual a su uid. No se usa el rol, que sigue siendo `CLIENT`. "Mi plan" solo aparece para esas cuentas.
+- Reglas: cada usuario lee y escribe solo su documento de `subscriptions`, y el dueño de un prestador puede cambiar únicamente `featuredUntil` de su ficha. Están en `firestore.rules` con sus tests en `tools/firestore-rules`.
+
+**Eventos de Analytics**, sin uid ni datos personales: `paywall_view` (con `source`), `subscribe_start` (con `plan`) y `subscribe_result` (con `plan` y `result`).
+
+> **Limitación de seguridad.** Con la pasarela simulada, las reglas no pueden comprobar que el pago exista: cualquier usuario puede escribir su propio plan, o un `featuredUntil` lejano, sin pagar. Es aceptable solo para la simulación. Con pagos reales hay que validar el recibo de Play en un backend (por ejemplo, una Cloud Function) y cerrar esos permisos de escritura.
+>
+> **Reglas publicadas.** Las reglas de `tp-2-54a64` son las anteriores al TP3 más estos dos bloques. El `firestore.rules` del repositorio todavía tiene desactivada la creación directa de solicitudes (a la espera de la Cloud Function `createServiceRequest`), así que no se debe publicar tal cual mientras la app siga creándolas directo.
