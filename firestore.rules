@@ -35,7 +35,27 @@ service cloud.firestore {
 
     match /providers/{providerId} {
       allow read: if isSignedIn();
-      allow write: if false;
+      // Demo: only the owner of the profile (userId == uid) can set featuredUntil.
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['featuredUntil'])
+        && request.resource.data.featuredUntil is timestamp;
+      allow create, delete: if false;
+    }
+
+    // Plans bought through the simulated payment gateway. Demo only: the app writes its own plan,
+    // so with real payments this has to move behind a backend that validates the purchase.
+    match /subscriptions/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['adFree', 'featured', 'updatedAt'])
+        && request.resource.data.updatedAt == request.time
+        // adFree: { plan in [adfree_yearly, adfree_lifetime], expiresAt: null | timestamp }
+        // featured: { plan in [featured_weekly|monthly|yearly], expiresAt: timestamp, trialEndsAt?: timestamp }
+        && (!('adFree' in request.resource.data) || (request.resource.data.adFree.keys().hasOnly(['plan', 'expiresAt'])
+            && request.resource.data.adFree.plan in ['adfree_yearly', 'adfree_lifetime']))
+        && (!('featured' in request.resource.data) || (request.resource.data.featured.keys().hasOnly(['plan', 'expiresAt', 'trialEndsAt'])
+            && request.resource.data.featured.plan in ['featured_weekly', 'featured_monthly', 'featured_yearly']));
+      allow delete: if false;
     }
 
     match /serviceRequests/{requestId} {

@@ -3,7 +3,6 @@ package com.example.serviciosya.domain.billing
 /** A plan the user bought. [expiresAtMillis] is null for the lifetime plan, which never expires. */
 data class Subscription(
     val plan: PlanId,
-    val startedAtMillis: Long,
     val trialEndsAtMillis: Long? = null,
     val expiresAtMillis: Long?,
 ) {
@@ -19,7 +18,7 @@ data class Subscription(
         fun start(plan: Plan, nowMillis: Long): Subscription {
             val trialEnd = if (plan.trialDays > 0) nowMillis + plan.trialDays * DAY_MILLIS else null
             val expiresAt = plan.periodDays?.let { (trialEnd ?: nowMillis) + it * DAY_MILLIS }
-            return Subscription(plan.id, nowMillis, trialEnd, expiresAt)
+            return Subscription(plan.id, trialEnd, expiresAt)
         }
     }
 }

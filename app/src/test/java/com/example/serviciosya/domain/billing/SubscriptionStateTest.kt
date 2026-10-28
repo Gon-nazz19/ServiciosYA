@@ -51,7 +51,7 @@ class SubscriptionStateTest {
 
     @Test
     fun `an expired plan is not in trial`() {
-        val subscription = Subscription(PlanId.FEATURED_MONTHLY, now, trialEndsAtMillis = now + 10, expiresAtMillis = now + 5)
+        val subscription = Subscription(PlanId.FEATURED_MONTHLY, trialEndsAtMillis = now + 10, expiresAtMillis = now + 5)
 
         assertTrue(subscription.isInTrial(now + 1))
         assertFalse(subscription.isInTrial(now + 6))

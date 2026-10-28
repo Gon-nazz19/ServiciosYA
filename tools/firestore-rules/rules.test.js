@@ -212,6 +212,120 @@ describe('users', () => {
   });
 });
 
+// Same payload FirestoreSubscriptionStore sends.
+const inDays = (days) => new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+function newSubscription(overrides = {}) {
+  return {
+    adFree: { plan: 'adfree_yearly', expiresAt: inDays(365) },
+    updatedAt: serverTimestamp(),
+    ...overrides,
+  };
+}
+
+describe('subscriptions (simulated payment gateway)', () => {
+  const ref = (db, uid = ALICE) => doc(db, `subscriptions/${uid}`);
+
+  test('a user can save the own yearly and lifetime client plans', async () => {
+    const db = signedIn(ALICE);
+    await assertSucceeds(setDoc(ref(db), newSubscription()));
+    await assertSucceeds(setDoc(ref(db), newSubscription({ adFree: { plan: 'adfree_lifetime', expiresAt: null } })));
+  });
+
+  test('a user can save a provider plan with a free trial', async () => {
+    const featured = { plan: 'featured_monthly', trialEndsAt: inDays(7), expiresAt: inDays(37) };
+    await assertSucceeds(setDoc(ref(signedIn(ALICE)), { featured, updatedAt: serverTimestamp() }));
+    await assertSucceeds(setDoc(ref(signedIn(ALICE)), newSubscription({
+      featured: { plan: 'featured_weekly', expiresAt: inDays(7) },
+    })));
+  });
+
+  test('users read only their own subscription', async () => {
+    await setDoc(ref(signedIn(ALICE)), newSubscription());
+    await assertSucceeds(getDoc(ref(signedIn(ALICE))));
+    await assertFails(getDoc(ref(signedIn(BOB), ALICE)));
+    await assertFails(getDoc(ref(anonymous(), ALICE)));
+  });
+
+  test('a user cannot write the subscription of someone else or write anonymously', async () => {
+    await assertFails(setDoc(ref(signedIn(ALICE), BOB), newSubscription()));
+    await assertFails(setDoc(ref(anonymous(), ALICE), newSubscription()));
+  });
+
+  test('other fields and a fake update time are rejected', async () => {
+    const db = signedIn(ALICE);
+    await assertFails(setDoc(ref(db), newSubscription({ admin: true })));
+    await assertFails(setDoc(ref(db), newSubscription({ updatedAt: new Date(2020, 0, 1) })));
+  });
+
+  test('unknown plans, extra keys and plans in the wrong slot are rejected', async () => {
+    const db = signedIn(ALICE);
+    await assertFails(setDoc(ref(db), newSubscription({ adFree: { plan: 'gold', expiresAt: null } })));
+    await assertFails(setDoc(ref(db), newSubscription({ adFree: { plan: 'adfree_yearly', expiresAt: null, free: true } })));
+    await assertFails(setDoc(ref(db), newSubscription({ adFree: { plan: 'featured_weekly', expiresAt: inDays(7) } })));
+    await assertFails(setDoc(ref(db), {
+      featured: { plan: 'adfree_lifetime', expiresAt: null },
+      updatedAt: serverTimestamp(),
+    }));
+  });
+
+  test('a subscription cannot be deleted', async () => {
+    await setDoc(ref(signedIn(ALICE)), newSubscription());
+    await assertFails(deleteDoc(ref(signedIn(ALICE))));
+  });
+});
+
+describe('providers: the owner can only set featuredUntil', () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'providers/alice-plumbing'), {
+        userId: ALICE, name: 'Alice Plomería', categoryId: 'plomeros', city: 'San Francisco', active: true, rating: 4.5,
+      });
+    });
+  });
+
+  test('the owner can set featuredUntil on the own profile', async () => {
+    await assertSucceeds(updateDoc(doc(signedIn(ALICE), 'providers/alice-plumbing'), { featuredUntil: inDays(30) }));
+  });
+
+  test('another user cannot feature a profile that is not theirs', async () => {
+    await assertFails(updateDoc(doc(signedIn(BOB), 'providers/alice-plumbing'), { featuredUntil: inDays(30) }));
+    await assertFails(updateDoc(doc(anonymous(), 'providers/alice-plumbing'), { featuredUntil: inDays(30) }));
+  });
+
+  test('the owner cannot change anything else of the profile', async () => {
+    const ref = doc(signedIn(ALICE), 'providers/alice-plumbing');
+    await assertFails(updateDoc(ref, { rating: 5 }));
+    await assertFails(updateDoc(ref, { active: false }));
+    await assertFails(updateDoc(ref, { userId: BOB }));
+    await assertFails(updateDoc(ref, { featuredUntil: inDays(30), rating: 5 }));
+  });
+
+  test('featuredUntil has to be a timestamp', async () => {
+    const ref = doc(signedIn(ALICE), 'providers/alice-plumbing');
+    await assertFails(updateDoc(ref, { featuredUntil: 'tomorrow' }));
+    await assertFails(updateDoc(ref, { featuredUntil: 123456789 }));
+  });
+
+  test('a profile without userId cannot be updated by anyone', async () => {
+    await assertFails(updateDoc(doc(signedIn(ALICE), 'providers/carlos-electricidad'), { featuredUntil: inDays(30) }));
+  });
+
+  test('profiles still cannot be created or deleted from the app', async () => {
+    await assertFails(setDoc(doc(signedIn(ALICE), 'providers/new'), { userId: ALICE, name: 'New', active: true }));
+    await assertFails(deleteDoc(doc(signedIn(ALICE), 'providers/alice-plumbing')));
+  });
+
+  test('"Mi plan" can find the own provider profile by userId', async () => {
+    const snapshot = await assertSucceeds(getDocs(query(
+      collection(signedIn(ALICE), 'providers'),
+      where('userId', '==', ALICE),
+    )));
+    if (snapshot.docs.length !== 1 || snapshot.docs[0].id !== 'alice-plumbing') {
+      throw new Error(`Se esperaba solo alice-plumbing y llegó: ${snapshot.docs.map((d) => d.id).join(', ')}`);
+    }
+  });
+});
+
 describe('everything else', () => {
   test('unknown collections are denied', async () => {
     await assertFails(setDoc(doc(signedIn(ALICE), 'secrets/x'), { a: 1 }));

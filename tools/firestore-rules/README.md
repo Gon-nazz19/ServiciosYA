@@ -5,7 +5,8 @@ Las reglas viven en [`firestore.rules`](../../firestore.rules), en la raíz del 
 | Colección | Leer | Escribir |
 |---|---|---|
 | `categories` | usuarios autenticados | nadie desde la app (solo el seed) |
-| `providers` | usuarios autenticados | nadie desde la app (solo el seed) |
+| `providers` | usuarios autenticados | crear y borrar: nadie desde la app (solo el seed). Editar: solo el dueño de la ficha (`userId == uid`) y únicamente `featuredUntil` (demo de la pasarela simulada) |
+| `subscriptions` | solo el propio usuario | crear y editar: su propio doc, con las claves `adFree`, `featured` y `updatedAt` y planes válidos (demo de la pasarela simulada: con pagos reales debe pasar por un backend). No se puede borrar |
 | `serviceRequests` | solo el cliente que la creó | nadie desde la app; `createServiceRequest` crea con Admin SDK. No se puede editar ni borrar |
 | `users` | solo el propio usuario | crear: su propio perfil con `role: CLIENT`. No se puede editar ni borrar |
 | cualquier otra | nadie | nadie |
