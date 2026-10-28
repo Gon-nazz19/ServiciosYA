@@ -17,6 +17,19 @@ val appCheckDebugToken: String = rootProject.file("local.properties")
     ?.getProperty("APP_CHECK_DEBUG_TOKEN")
     .orEmpty()
 
+// AdMob IDs of the release build, kept out of Git (local.properties or ~/.gradle/gradle.properties).
+// Debug builds always use Google's test IDs. Without both, release builds show no ads.
+fun adMobProperty(name: String): String =
+    rootProject.file("local.properties")
+        .takeIf { it.exists() }
+        ?.let { file -> Properties().apply { file.inputStream().use(::load) } }
+        ?.getProperty(name)
+        ?: providers.gradleProperty(name).orNull
+        ?: ""
+
+val adMobAppId: String = adMobProperty("ADMOB_APP_ID")
+val adMobNativeUnitId: String = adMobProperty("ADMOB_NATIVE_UNIT_ID")
+
 android {
     namespace = "com.example.serviciosya"
     compileSdk {
@@ -39,8 +52,15 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "APP_CHECK_DEBUG_TOKEN", "\"$appCheckDebugToken\"")
+            // Google's public test IDs for Android native ads.
+            buildConfigField("boolean", "ADS_ENABLED", "true")
+            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-3940256099942544~3347511713\"")
+            buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
         }
         release {
+            buildConfigField("boolean", "ADS_ENABLED", "${adMobAppId.isNotBlank() && adMobNativeUnitId.isNotBlank()}")
+            buildConfigField("String", "ADMOB_APP_ID", "\"$adMobAppId\"")
+            buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"$adMobNativeUnitId\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -86,6 +106,7 @@ dependencies {
     releaseImplementation(libs.firebase.appcheck.playintegrity)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.play.services.location)
+    implementation(libs.ads.mobile.sdk)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
