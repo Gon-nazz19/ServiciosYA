@@ -18,6 +18,7 @@ data class ProviderDto(
     val reviewCount: Int,
     val verified: Boolean,
     val active: Boolean,
+    val featuredUntil: Long? = null,
 )
 
 fun DocumentSnapshot.toProviderDto(): ProviderDto = ProviderDto(
@@ -35,6 +36,7 @@ fun DocumentSnapshot.toProviderDto(): ProviderDto = ProviderDto(
     reviewCount = (get("reviewCount") as? Number)?.toInt() ?: 0,
     verified = getBoolean("verified") ?: false,
     active = getBoolean("active") ?: false,
+    featuredUntil = getTimestamp("featuredUntil")?.toDate()?.time,
 )
 
 fun ProviderDto.toDomain(): Provider = Provider(
@@ -52,4 +54,5 @@ fun ProviderDto.toDomain(): Provider = Provider(
     reviewCount = reviewCount,
     verified = verified,
     active = active,
+    featuredUntil = featuredUntil,
 )

@@ -16,7 +16,12 @@ data class Provider(
     val reviewCount: Int,
     val verified: Boolean,
     val active: Boolean,
+    /** Epoch millis until which the provider has an active "Destacado" plan; null when it never had one. */
+    val featuredUntil: Long? = null,
 ) {
     val location: GeoPoint?
         get() = if (latitude != null && longitude != null) GeoPoint(latitude, longitude) else null
+
+    /** An expired plan does not count. */
+    fun isFeaturedAt(nowMillis: Long): Boolean = featuredUntil != null && featuredUntil > nowMillis
 }
