@@ -21,4 +21,10 @@ class NoOpAnalyticsTracker : AnalyticsTracker {
     override fun trackAssistantUsed(result: AssistantResultType, categoryId: String) = Unit
 
     override fun trackAssistantUnmatched(service: String) = Unit
+
+    override fun trackAdImpression() = Unit
+
+    override fun trackAdClick() = Unit
+
+    override fun trackAdLoadFailed(reason: String) = Unit
 }

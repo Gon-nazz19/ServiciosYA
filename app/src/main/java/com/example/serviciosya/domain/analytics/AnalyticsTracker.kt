@@ -25,6 +25,14 @@ interface AnalyticsTracker {
 
     /** A service the app does not offer yet, as named by the assistant ("herrero"). */
     fun trackAssistantUnmatched(service: String)
+
+    /** Ad events carry no user data, only what the ad itself did. */
+    fun trackAdImpression()
+
+    fun trackAdClick()
+
+    /** [reason] is a short code such as "no_fill" or "network", never free text. */
+    fun trackAdLoadFailed(reason: String)
 }
 
 enum class AssistantResultType(val value: String) {
@@ -48,6 +56,9 @@ object AnalyticsEvents {
     const val LOCATION_PERMISSION_RESULT = "location_permission_result"
     const val ASSISTANT_USED = "assistant_used"
     const val ASSISTANT_UNMATCHED = "assistant_unmatched"
+    const val AD_IMPRESSION = "ad_impression"
+    const val AD_CLICK = "ad_click"
+    const val AD_LOAD_FAILED = "ad_load_failed"
 }
 
 object AnalyticsParams {
@@ -61,6 +72,7 @@ object AnalyticsParams {
     const val FROM_ASSISTANT = "from_assistant"
     const val RESULT = "result"
     const val SERVICE = "service"
+    const val REASON = "reason"
 
     /** Firebase Analytics drops parameter values longer than 100 characters. */
     const val MAX_VALUE_LENGTH = 100

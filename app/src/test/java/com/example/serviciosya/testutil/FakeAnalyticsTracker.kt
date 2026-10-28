@@ -74,4 +74,16 @@ class FakeAnalyticsTracker : AnalyticsTracker {
     override fun trackAssistantUnmatched(service: String) {
         events += TrackedEvent(AnalyticsEvents.ASSISTANT_UNMATCHED, mapOf(AnalyticsParams.SERVICE to service))
     }
+
+    override fun trackAdImpression() {
+        events += TrackedEvent(AnalyticsEvents.AD_IMPRESSION, emptyMap())
+    }
+
+    override fun trackAdClick() {
+        events += TrackedEvent(AnalyticsEvents.AD_CLICK, emptyMap())
+    }
+
+    override fun trackAdLoadFailed(reason: String) {
+        events += TrackedEvent(AnalyticsEvents.AD_LOAD_FAILED, mapOf(AnalyticsParams.REASON to reason))
+    }
 }

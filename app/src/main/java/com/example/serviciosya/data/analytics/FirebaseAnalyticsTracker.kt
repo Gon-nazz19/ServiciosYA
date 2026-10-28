@@ -59,6 +59,15 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.SERVICE to service,
     )
 
+    override fun trackAdImpression() = log(AnalyticsEvents.AD_IMPRESSION)
+
+    override fun trackAdClick() = log(AnalyticsEvents.AD_CLICK)
+
+    override fun trackAdLoadFailed(reason: String) = log(
+        AnalyticsEvents.AD_LOAD_FAILED,
+        AnalyticsParams.REASON to reason,
+    )
+
     private fun log(event: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) ->
