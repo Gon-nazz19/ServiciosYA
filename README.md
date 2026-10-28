@@ -119,7 +119,11 @@ ServiciosYA/
 3. *(Opcional)* Habilitar el asistente con IA. No requiere el plan Blaze. Sin este paso, el asistente responde que hay que elegir la categoría manualmente.
    1. En la consola de Firebase, entrar a **AI Logic → Comenzar** y elegir **Gemini Developer API**.
    2. En **App Check**, registrar la app Android con **Play Integrity** y el SHA-256 del certificado (`./gradlew signingReport`). AI Logic rechaza los pedidos que no traen un token de App Check.
-   3. Para el emulador, abrir la app una vez, copiar el token que imprime Logcat (`DebugAppCheckProvider`) y cargarlo en **App Check → ⋮ → Administrar tokens de depuración**.
+   3. Para el emulador o un celular de prueba, agregar a `local.properties` el token de depuración del equipo, que ya está registrado en App Check (lo comparte el grupo por privado; nunca se sube a Git):
+      ```properties
+      APP_CHECK_DEBUG_TOKEN=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      ```
+      Sin esa línea, la app genera un token propio: hay que copiarlo de Logcat (`DebugAppCheckProvider`) y cargarlo en **App Check → ⋮ → Administrar tokens de depuración**.
 4. Cargar las categorías y los prestadores de prueba con [`tools/seed`](tools/seed/README.md). Desde el TP7 incluyen latitud y longitud, así que hay que volver a cargarlos.
 5. Publicar las reglas de seguridad con [`tools/firestore-rules`](tools/firestore-rules/README.md).
 6. Abrir el proyecto en Android Studio y ejecutarlo con *Run*, o desde la terminal:

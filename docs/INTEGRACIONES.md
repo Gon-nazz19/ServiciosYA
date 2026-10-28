@@ -136,7 +136,7 @@ ContactLinkBuilder.directionsUri(GeoPoint(-31.4268, -62.0849), "Plomería Garcí
 |---|---|
 | Dominio | `domain/assistant/ServiceAssistant.kt` (interfaz, `AssistantSuggestion` y `AssistantException`), `domain/assistant/AssistantPrompt.kt` (prompt y parseo del JSON), `domain/usecase/AnalyzeProblemUseCase.kt` |
 | Datos | `data/assistant/GeminiServiceAssistant.kt`, `data/assistant/UnavailableServiceAssistant.kt` |
-| Seguridad | App Check en `di/AppContainer.kt`. El proveedor se elige por tipo de build: `src/debug/.../AppCheckProviders.kt` (token de depuración) y `src/release/.../AppCheckProviders.kt` (Play Integrity) |
+| Seguridad | App Check en `di/AppContainer.kt`. El proveedor se elige por tipo de build: `src/debug/.../AppCheckProviders.kt` (token de depuración, compartido por el equipo desde `local.properties`) y `src/release/.../AppCheckProviders.kt` (Play Integrity) |
 | Presentación | `presentation/assistant/AssistantViewModel.kt`, `AssistantCard.kt` (tarjeta "¿Qué necesitás resolver?" en el Inicio). `ProviderDetailViewModel.applySuggestedMessage` |
 | Analytics | `assistant_used` con `result` (`matched`, `unmatched` o `error`) y `category_id`. `assistant_unmatched` con `service`. `from_assistant` en `contact_request` |
 
@@ -246,7 +246,7 @@ Los teléfonos del seed son ficticios. Para probar WhatsApp con un chat real, se
 | Qué | Dónde | Sin esto |
 |---|---|---|
 | **Habilitar Firebase AI Logic** con el proveedor **Gemini Developer API** | Consola de Firebase → *AI Logic* → *Comenzar*. No requiere Blaze | El asistente responde "No pudimos analizar tu consulta, elegí la categoría manualmente" |
-| **Registrar la app en App Check** con Play Integrity (SHA-256 del certificado) y cargar el **token de depuración** del emulador | Consola de Firebase → *App Check*. El token aparece en Logcat al abrir la app (`DebugAppCheckProvider`) | AI Logic rechaza los pedidos y el asistente muestra el mismo mensaje |
+| **Registrar la app en App Check** con Play Integrity (SHA-256 del certificado) y un **token de depuración** para el equipo | Consola de Firebase → *App Check*. Cada integrante pone el token compartido en `local.properties` (`APP_CHECK_DEBUG_TOKEN=...`), fuera de Git; sin él, la app genera uno propio que aparece en Logcat (`DebugAppCheckProvider`) | AI Logic rechaza los pedidos y el asistente muestra el mismo mensaje |
 | **Recargar el seed** con las coordenadas | `cd tools/seed && npm run seed` | Los prestadores no tienen ubicación: no hay distancias ni "Cómo llegar" |
 
 ## 6. Diagrama de arquitectura

@@ -83,7 +83,7 @@ class AppContainer(context: Context) {
 
     val serviceAssistant: ServiceAssistant = if (isFirebaseConfigured) {
         // Firebase AI Logic rejects requests without an App Check token.
-        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(appCheckProviderFactory())
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(appCheckProviderFactory(FirebaseApp.getInstance()))
         GeminiServiceAssistant.create()
     } else {
         UnavailableServiceAssistant()

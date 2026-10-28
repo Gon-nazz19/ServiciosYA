@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,13 @@ plugins {
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
 }
+
+// Shared App Check debug token of the team, kept in local.properties (not in Git). Optional.
+val appCheckDebugToken: String = rootProject.file("local.properties")
+    .takeIf { it.exists() }
+    ?.let { file -> Properties().apply { file.inputStream().use(::load) } }
+    ?.getProperty("APP_CHECK_DEBUG_TOKEN")
+    .orEmpty()
 
 android {
     namespace = "com.example.serviciosya"
@@ -28,6 +37,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "APP_CHECK_DEBUG_TOKEN", "\"$appCheckDebugToken\"")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
