@@ -12,7 +12,12 @@ sealed interface AdResult {
     data class Loaded(val ad: NativeAdContent) : AdResult
 
     /** [reason] is a short code such as "no_fill" or "network", never free text. */
-    data class NoAd(val reason: String) : AdResult
+    data class NoAd(val reason: String) : AdResult {
+        companion object {
+            /** Ads are switched off, so nothing was requested and nothing failed. */
+            const val REASON_DISABLED = "disabled"
+        }
+    }
 }
 
 /**

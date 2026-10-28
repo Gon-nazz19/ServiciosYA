@@ -5,9 +5,5 @@ import com.example.serviciosya.domain.ads.AdsProvider
 
 /** Used when ads are not available or not configured: it asks for nothing and shows nothing. */
 class NoOpAdsProvider : AdsProvider {
-    override suspend fun loadNativeAd(): AdResult = AdResult.NoAd(REASON)
-
-    companion object {
-        const val REASON = "disabled"
-    }
+    override suspend fun loadNativeAd(): AdResult = AdResult.NoAd(AdResult.NoAd.REASON_DISABLED)
 }

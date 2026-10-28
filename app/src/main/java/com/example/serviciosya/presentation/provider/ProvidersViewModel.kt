@@ -2,12 +2,17 @@ package com.example.serviciosya.presentation.provider
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.serviciosya.domain.ads.AdPlacement
+import com.example.serviciosya.domain.ads.AdResult
+import com.example.serviciosya.domain.ads.AdsProvider
+import com.example.serviciosya.domain.ads.NativeAdContent
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.location.DistanceCalculator
 import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.domain.model.Provider
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +24,8 @@ data class ProvidersUiState(
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val showLocationPrompt: Boolean = false,
+    /** Loaded native ads: the i-th one goes at the i-th position of [AdPlacement.positions]. */
+    val ads: List<NativeAdContent> = emptyList(),
 )
 
 /** The distance belongs to this screen only, so it lives here instead of in the domain model. */
@@ -33,6 +40,7 @@ class ProvidersViewModel(
     private val getActiveProvidersByCategory: GetActiveProvidersByCategoryUseCase,
     private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
+    private val adsProvider: AdsProvider,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         ProvidersUiState(showLocationPrompt = !locationProvider.hasPermission()),
@@ -42,6 +50,7 @@ class ProvidersViewModel(
     private var categoryViewTracked = false
     private var providers: List<Provider> = emptyList()
     private var userLocation: GeoPoint? = null
+    private var adsJob: Job? = null
 
     init {
         loadProviders()
@@ -49,8 +58,9 @@ class ProvidersViewModel(
     }
 
     fun loadProviders() {
+        adsJob?.cancel()
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, ads = emptyList()) }
             getActiveProvidersByCategory(categoryId)
                 .onSuccess { loaded ->
                     providers = loaded
@@ -59,6 +69,7 @@ class ProvidersViewModel(
                         categoryViewTracked = true
                         analytics.trackCategoryView(categoryId, categoryName)
                     }
+                    loadAds(loaded.size)
                 }
                 .onFailure {
                     providers = emptyList()
@@ -70,6 +81,21 @@ class ProvidersViewModel(
                         )
                     }
                 }
+        }
+    }
+
+    /** Ads load apart from the list, so providers show without waiting. A failed ad is simply left out. */
+    private fun loadAds(providerCount: Int) {
+        val slots = AdPlacement.positions(providerCount).size
+        if (slots == 0) return
+        adsJob = viewModelScope.launch {
+            repeat(slots) {
+                when (val result = adsProvider.loadNativeAd()) {
+                    is AdResult.Loaded -> _uiState.update { it.copy(ads = it.ads + result.ad) }
+                    is AdResult.NoAd ->
+                        if (result.reason != AdResult.NoAd.REASON_DISABLED) analytics.trackAdLoadFailed(result.reason)
+                }
+            }
         }
     }
 

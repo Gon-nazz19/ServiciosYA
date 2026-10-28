@@ -1,9 +1,11 @@
 package com.example.serviciosya.presentation.provider
 
+import com.example.serviciosya.domain.ads.AdResult
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
 import com.example.serviciosya.domain.model.GeoPoint
+import com.example.serviciosya.testutil.FakeAdsProvider
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
 import com.example.serviciosya.testutil.FakeLocationProvider
 import com.example.serviciosya.testutil.FakeProviderRepository
@@ -27,13 +29,18 @@ class ProvidersViewModelTest {
     private val locationProvider = FakeLocationProvider()
     private val userLocation = GeoPoint(-31.4280, -62.0830)
 
+    private val adsProvider = FakeAdsProvider()
+
     private fun createViewModel(categoryId: String = "electricistas") = ProvidersViewModel(
         categoryId = categoryId,
         categoryName = "Electricista",
         getActiveProvidersByCategory = GetActiveProvidersByCategoryUseCase(repository),
         locationProvider = locationProvider,
         analytics = analytics,
+        adsProvider = adsProvider,
     )
+
+    private fun providersOf(count: Int) = (1..count).map { testProvider(id = "p$it") }
 
     private val nearbyProviders = listOf(
         testProvider(id = "far", latitude = -31.46, longitude = -62.08),
@@ -201,5 +208,60 @@ class ProvidersViewModelTest {
         advanceUntilIdle()
 
         assertTrue(analytics.events.isEmpty())
+    }
+
+    @Test
+    fun `a list with more than six providers gets one loaded ad`() = runTest {
+        repository.providersResult = Result.success(providersOf(7))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(7, state.providers.size)
+        assertEquals(1, state.ads.size)
+        assertEquals(1, adsProvider.loadCalls)
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.AD_LOAD_FAILED).isEmpty())
+    }
+
+    @Test
+    fun `failed ads are left out and tracked while the list keeps working`() = runTest {
+        repository.providersResult = Result.success(providersOf(13))
+        adsProvider.result = AdResult.NoAd("no_fill")
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(13, state.providers.size)
+        assertNull(state.errorMessage)
+        assertTrue(state.ads.isEmpty())
+        assertEquals(2, adsProvider.loadCalls)
+        val failures = analytics.eventsNamed(AnalyticsEvents.AD_LOAD_FAILED)
+        assertEquals(2, failures.size)
+        assertTrue(failures.all { it.params[AnalyticsParams.REASON] == "no_fill" })
+    }
+
+    @Test
+    fun `a list of six providers or fewer does not ask for ads`() = runTest {
+        repository.providersResult = Result.success(providersOf(6))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(0, adsProvider.loadCalls)
+        assertTrue(viewModel.uiState.value.ads.isEmpty())
+    }
+
+    @Test
+    fun `disabled ads are not tracked as a failure`() = runTest {
+        repository.providersResult = Result.success(providersOf(7))
+        adsProvider.result = AdResult.NoAd(AdResult.NoAd.REASON_DISABLED)
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.ads.isEmpty())
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.AD_LOAD_FAILED).isEmpty())
     }
 }
