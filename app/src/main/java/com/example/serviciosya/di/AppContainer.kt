@@ -2,6 +2,8 @@ package com.example.serviciosya.di
 
 import android.content.Context
 import com.example.serviciosya.BuildConfig
+import com.example.serviciosya.data.ads.AdMobAdsProvider
+import com.example.serviciosya.data.ads.NoOpAdsProvider
 import com.example.serviciosya.data.analytics.FirebaseAnalyticsTracker
 import com.example.serviciosya.data.analytics.NoOpAnalyticsTracker
 import com.example.serviciosya.data.appcheck.appCheckProviderFactory
@@ -18,6 +20,7 @@ import com.example.serviciosya.data.repository.UnavailableAuthRepository
 import com.example.serviciosya.data.repository.UnavailableCategoryRepository
 import com.example.serviciosya.data.repository.UnavailableProviderRepository
 import com.example.serviciosya.data.repository.UnavailableServiceRequestRepository
+import com.example.serviciosya.domain.ads.AdsProvider
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.assistant.ServiceAssistant
 import com.example.serviciosya.domain.contact.ContactLauncher
@@ -79,6 +82,17 @@ class AppContainer(context: Context) {
         FirebaseAnalyticsTracker(FirebaseAnalytics.getInstance(context))
     } else {
         NoOpAnalyticsTracker()
+    }
+
+    val adsProvider: AdsProvider = if (BuildConfig.ADS_ENABLED) {
+        AdMobAdsProvider(
+            context = context,
+            appId = BuildConfig.ADMOB_APP_ID,
+            nativeUnitId = BuildConfig.ADMOB_NATIVE_UNIT_ID,
+            analytics = analyticsTracker,
+        )
+    } else {
+        NoOpAdsProvider()
     }
 
     val serviceAssistant: ServiceAssistant = if (isFirebaseConfigured) {
