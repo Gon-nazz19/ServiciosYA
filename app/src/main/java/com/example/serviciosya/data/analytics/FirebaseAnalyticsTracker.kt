@@ -68,6 +68,22 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.REASON to reason,
     )
 
+    override fun trackPaywallView(source: String) = log(
+        AnalyticsEvents.PAYWALL_VIEW,
+        AnalyticsParams.SOURCE to source,
+    )
+
+    override fun trackSubscribeStart(plan: String) = log(
+        AnalyticsEvents.SUBSCRIBE_START,
+        AnalyticsParams.PLAN to plan,
+    )
+
+    override fun trackSubscribeResult(plan: String, result: String) = log(
+        AnalyticsEvents.SUBSCRIBE_RESULT,
+        AnalyticsParams.PLAN to plan,
+        AnalyticsParams.RESULT to result,
+    )
+
     private fun log(event: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) ->

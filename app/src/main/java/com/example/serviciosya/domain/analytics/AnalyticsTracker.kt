@@ -33,6 +33,15 @@ interface AnalyticsTracker {
 
     /** [reason] is a short code such as "no_fill" or "network", never free text. */
     fun trackAdLoadFailed(reason: String)
+
+    /** The user saw a screen that offers plans; [source] says where from, such as "profile". */
+    fun trackPaywallView(source: String)
+
+    /** [plan] is the stable plan id, such as "adfree_yearly". */
+    fun trackSubscribeStart(plan: String)
+
+    /** [result] is "success", "cancelled", "pending" or "error". */
+    fun trackSubscribeResult(plan: String, result: String)
 }
 
 enum class AssistantResultType(val value: String) {
@@ -59,6 +68,9 @@ object AnalyticsEvents {
     const val AD_IMPRESSION = "ad_impression"
     const val AD_CLICK = "ad_click"
     const val AD_LOAD_FAILED = "ad_load_failed"
+    const val PAYWALL_VIEW = "paywall_view"
+    const val SUBSCRIBE_START = "subscribe_start"
+    const val SUBSCRIBE_RESULT = "subscribe_result"
 }
 
 object AnalyticsParams {
@@ -73,6 +85,8 @@ object AnalyticsParams {
     const val RESULT = "result"
     const val SERVICE = "service"
     const val REASON = "reason"
+    const val SOURCE = "source"
+    const val PLAN = "plan"
 
     /** Firebase Analytics drops parameter values longer than 100 characters. */
     const val MAX_VALUE_LENGTH = 100

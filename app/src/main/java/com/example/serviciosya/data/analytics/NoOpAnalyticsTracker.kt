@@ -27,4 +27,10 @@ class NoOpAnalyticsTracker : AnalyticsTracker {
     override fun trackAdClick() = Unit
 
     override fun trackAdLoadFailed(reason: String) = Unit
+
+    override fun trackPaywallView(source: String) = Unit
+
+    override fun trackSubscribeStart(plan: String) = Unit
+
+    override fun trackSubscribeResult(plan: String, result: String) = Unit
 }

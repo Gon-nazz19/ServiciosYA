@@ -86,4 +86,19 @@ class FakeAnalyticsTracker : AnalyticsTracker {
     override fun trackAdLoadFailed(reason: String) {
         events += TrackedEvent(AnalyticsEvents.AD_LOAD_FAILED, mapOf(AnalyticsParams.REASON to reason))
     }
+
+    override fun trackPaywallView(source: String) {
+        events += TrackedEvent(AnalyticsEvents.PAYWALL_VIEW, mapOf(AnalyticsParams.SOURCE to source))
+    }
+
+    override fun trackSubscribeStart(plan: String) {
+        events += TrackedEvent(AnalyticsEvents.SUBSCRIBE_START, mapOf(AnalyticsParams.PLAN to plan))
+    }
+
+    override fun trackSubscribeResult(plan: String, result: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.SUBSCRIBE_RESULT,
+            mapOf(AnalyticsParams.PLAN to plan, AnalyticsParams.RESULT to result),
+        )
+    }
 }
