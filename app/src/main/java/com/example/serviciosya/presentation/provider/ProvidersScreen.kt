@@ -96,13 +96,24 @@ fun ProvidersScreen(
                             )
                         }
                     }
-                    items(uiState.providers, key = { it.provider.id }) { item ->
-                        ProviderCard(
-                            provider = item.provider,
-                            distanceKm = item.distanceKm,
-                            categoryName = categoryName,
-                            onClick = { onProviderClick(item.provider) },
-                        )
+                    items(
+                        providerListEntries(uiState.providers, uiState.ads),
+                        key = { entry ->
+                            when (entry) {
+                                is ProviderListEntry.ProviderEntry -> entry.item.provider.id
+                                is ProviderListEntry.AdEntry -> "ad-${entry.index}"
+                            }
+                        },
+                    ) { entry ->
+                        when (entry) {
+                            is ProviderListEntry.ProviderEntry -> ProviderCard(
+                                provider = entry.item.provider,
+                                distanceKm = entry.item.distanceKm,
+                                categoryName = categoryName,
+                                onClick = { onProviderClick(entry.item.provider) },
+                            )
+                            is ProviderListEntry.AdEntry -> NativeAdCard(ad = entry.ad)
+                        }
                     }
                 }
             }
