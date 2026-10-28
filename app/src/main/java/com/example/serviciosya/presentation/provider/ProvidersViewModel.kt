@@ -7,6 +7,8 @@ import com.example.serviciosya.domain.ads.AdResult
 import com.example.serviciosya.domain.ads.AdsProvider
 import com.example.serviciosya.domain.ads.NativeAdContent
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.billing.BillingRepository
+import com.example.serviciosya.domain.billing.FeaturedRanking
 import com.example.serviciosya.domain.location.DistanceCalculator
 import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.model.GeoPoint
@@ -16,6 +18,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -32,6 +35,8 @@ data class ProvidersUiState(
 data class ProviderListItem(
     val provider: Provider,
     val distanceKm: Double?,
+    /** Has an active "Destacado" plan: shows the badge. */
+    val isFeatured: Boolean = false,
 )
 
 class ProvidersViewModel(
@@ -41,6 +46,8 @@ class ProvidersViewModel(
     private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
     private val adsProvider: AdsProvider,
+    private val billing: BillingRepository,
+    private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         ProvidersUiState(showLocationPrompt = !locationProvider.hasPermission()),
@@ -55,6 +62,7 @@ class ProvidersViewModel(
     init {
         loadProviders()
         refreshLocation()
+        hideAdsWithAPlan()
     }
 
     fun loadProviders() {
@@ -89,11 +97,25 @@ class ProvidersViewModel(
         val slots = AdPlacement.positions(providerCount).size
         if (slots == 0) return
         adsJob = viewModelScope.launch {
+            // A client or provider with an active plan sees no ads, so none are even requested.
+            if (billing.observeSubscription().first().isAdFree(now())) return@launch
             repeat(slots) {
                 when (val result = adsProvider.loadNativeAd()) {
                     is AdResult.Loaded -> _uiState.update { it.copy(ads = it.ads + result.ad) }
                     is AdResult.NoAd ->
                         if (result.reason != AdResult.NoAd.REASON_DISABLED) analytics.trackAdLoadFailed(result.reason)
+                }
+            }
+        }
+    }
+
+    /** If a plan becomes active while the list is open, the ads on screen disappear. */
+    private fun hideAdsWithAPlan() {
+        viewModelScope.launch {
+            billing.observeSubscription().collect { entitlements ->
+                if (entitlements.isAdFree(now())) {
+                    adsJob?.cancel()
+                    _uiState.update { it.copy(ads = emptyList()) }
                 }
             }
         }
@@ -116,9 +138,14 @@ class ProvidersViewModel(
         }
     }
 
-    private fun listItems(): List<ProviderListItem> =
-        DistanceCalculator.withDistances(providers, userLocation)
-            .map { (provider, distanceKm) -> ProviderListItem(provider, distanceKm) }
+    /** Nearest first when the location is known, then featured providers move up within the first results. */
+    private fun listItems(): List<ProviderListItem> {
+        val nowMillis = now()
+        val withDistances = DistanceCalculator.withDistances(providers, userLocation)
+        val distances = withDistances.associate { (provider, distanceKm) -> provider.id to distanceKm }
+        return FeaturedRanking.rank(withDistances.map { it.first }, nowMillis) { distances[it.id] }
+            .map { ProviderListItem(it, distances[it.id], it.isFeaturedAt(nowMillis)) }
+    }
 
     companion object {
         const val LOAD_ERROR_MESSAGE = "No pudimos cargar los prestadores."

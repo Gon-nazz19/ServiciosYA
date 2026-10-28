@@ -167,6 +167,7 @@ fun AppNavigation(
                         locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
                         adsProvider = container.adsProvider,
+                        billing = container.billingRepository,
                     ),
                 )
                 val providersState by providersViewModel.uiState.collectAsStateWithLifecycle()

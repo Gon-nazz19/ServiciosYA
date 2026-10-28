@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.serviciosya.domain.ads.AdsProvider
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
+import com.example.serviciosya.domain.billing.BillingRepository
 import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.repository.ProviderRepository
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
@@ -15,6 +16,7 @@ class ProvidersViewModelFactory(
     private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
     private val adsProvider: AdsProvider,
+    private val billing: BillingRepository,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -26,6 +28,7 @@ class ProvidersViewModelFactory(
             locationProvider = locationProvider,
             analytics = analytics,
             adsProvider = adsProvider,
+            billing = billing,
         ) as T
     }
 }

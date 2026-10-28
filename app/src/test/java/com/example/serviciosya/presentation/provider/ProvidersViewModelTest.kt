@@ -2,11 +2,16 @@ package com.example.serviciosya.presentation.provider
 
 import com.example.serviciosya.domain.ads.AdResult
 import com.example.serviciosya.domain.analytics.AnalyticsEvents
+import com.example.serviciosya.domain.billing.Entitlements
+import com.example.serviciosya.domain.billing.Plan
+import com.example.serviciosya.domain.billing.PricingCatalog
+import com.example.serviciosya.domain.billing.Subscription
 import com.example.serviciosya.domain.analytics.AnalyticsParams
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
 import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.testutil.FakeAdsProvider
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
+import com.example.serviciosya.testutil.FakeBillingRepository
 import com.example.serviciosya.testutil.FakeLocationProvider
 import com.example.serviciosya.testutil.FakeProviderRepository
 import com.example.serviciosya.testutil.MainDispatcherRule
@@ -30,6 +35,7 @@ class ProvidersViewModelTest {
     private val userLocation = GeoPoint(-31.4280, -62.0830)
 
     private val adsProvider = FakeAdsProvider()
+    private val billing = FakeBillingRepository()
 
     private fun createViewModel(categoryId: String = "electricistas") = ProvidersViewModel(
         categoryId = categoryId,
@@ -38,6 +44,8 @@ class ProvidersViewModelTest {
         locationProvider = locationProvider,
         analytics = analytics,
         adsProvider = adsProvider,
+        billing = billing,
+        now = { FakeBillingRepository.NOW },
     )
 
     private fun providersOf(count: Int) = (1..count).map { testProvider(id = "p$it") }
@@ -263,5 +271,106 @@ class ProvidersViewModelTest {
 
         assertTrue(viewModel.uiState.value.ads.isEmpty())
         assertTrue(analytics.eventsNamed(AnalyticsEvents.AD_LOAD_FAILED).isEmpty())
+    }
+
+    private val now = FakeBillingRepository.NOW
+
+    private fun entitlementsOf(vararg plans: Plan, startedAt: Long = now) =
+        plans.fold(Entitlements.NONE) { acc, plan -> acc.withPurchase(Subscription.start(plan, startedAt)) }
+
+    private fun providersWithFeatured(count: Int, featured: Map<Int, Long>) =
+        providersOf(count).mapIndexed { index, provider -> provider.copy(featuredUntil = featured[index]) }
+
+    private fun noAdsWith(entitlements: Entitlements) = runTest {
+        billing.entitlements.value = entitlements
+        repository.providersResult = Result.success(providersOf(7))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(7, viewModel.uiState.value.providers.size)
+        assertTrue(viewModel.uiState.value.ads.isEmpty())
+        assertEquals(0, adsProvider.loadCalls)
+        assertTrue(analytics.eventsNamed(AnalyticsEvents.AD_LOAD_FAILED).isEmpty())
+    }
+
+    @Test
+    fun `featured providers move up to positions four and five and carry the badge`() = runTest {
+        repository.providersResult = Result.success(
+            providersWithFeatured(8, featured = mapOf(6 to now + 1_000, 7 to now + 1_000)),
+        )
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val items = viewModel.uiState.value.providers
+        assertEquals(listOf("p1", "p2", "p3", "p7", "p8", "p4", "p5", "p6"), items.map { it.provider.id })
+        assertEquals(listOf("p7", "p8"), items.filter { it.isFeatured }.map { it.provider.id })
+    }
+
+    @Test
+    fun `an expired plan neither moves up nor shows the badge`() = runTest {
+        repository.providersResult = Result.success(providersWithFeatured(8, featured = mapOf(6 to now - 1)))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val items = viewModel.uiState.value.providers
+        assertEquals((1..8).map { "p$it" }, items.map { it.provider.id })
+        assertTrue(items.none { it.isFeatured })
+    }
+
+    @Test
+    fun `a short list keeps its order even with a featured provider`() = runTest {
+        repository.providersResult = Result.success(providersWithFeatured(5, featured = mapOf(4 to now + 1_000)))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        val items = viewModel.uiState.value.providers
+        assertEquals((1..5).map { "p$it" }, items.map { it.provider.id })
+        assertTrue(items.last().isFeatured)
+    }
+
+    @Test
+    fun `a client with the yearly plan sees no ads`() = noAdsWith(entitlementsOf(PricingCatalog.adFreeYearly))
+
+    @Test
+    fun `a client with the lifetime plan sees no ads`() = noAdsWith(entitlementsOf(PricingCatalog.adFreeLifetime))
+
+    @Test
+    fun `the lifetime plan prevails over the yearly one in either order`() {
+        noAdsWith(entitlementsOf(PricingCatalog.adFreeYearly, PricingCatalog.adFreeLifetime))
+        noAdsWith(entitlementsOf(PricingCatalog.adFreeLifetime, PricingCatalog.adFreeYearly))
+    }
+
+    @Test
+    fun `a provider with an active plan sees no ads`() = noAdsWith(entitlementsOf(PricingCatalog.featuredWeekly))
+
+    @Test
+    fun `an expired plan shows ads again`() = runTest {
+        val longAgo = now - 400 * Subscription.DAY_MILLIS
+        billing.entitlements.value = entitlementsOf(PricingCatalog.adFreeYearly, startedAt = longAgo)
+        repository.providersResult = Result.success(providersOf(7))
+
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(1, viewModel.uiState.value.ads.size)
+        assertEquals(1, adsProvider.loadCalls)
+    }
+
+    @Test
+    fun `activating a plan with the list open removes the ads on screen`() = runTest {
+        repository.providersResult = Result.success(providersOf(7))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.ads.size)
+
+        billing.entitlements.value = entitlementsOf(PricingCatalog.adFreeYearly)
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.ads.isEmpty())
+        assertEquals(7, viewModel.uiState.value.providers.size)
     }
 }
