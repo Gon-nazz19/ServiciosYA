@@ -3,6 +3,7 @@ package com.example.serviciosya
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.serviciosya.di.AppContainer
+import com.example.serviciosya.domain.notifications.NotificationOpen
 import com.example.serviciosya.navigation.AppNavigation
 import com.example.serviciosya.presentation.assistant.AssistantViewModel
 import com.example.serviciosya.presentation.assistant.AssistantViewModelFactory
@@ -10,9 +11,15 @@ import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModelFactory
 import com.example.serviciosya.presentation.home.HomeViewModel
 import com.example.serviciosya.presentation.home.HomeViewModelFactory
+import com.example.serviciosya.presentation.retention.RetentionViewModel
+import com.example.serviciosya.presentation.retention.RetentionViewModelFactory
 
 @Composable
-fun ServiciosYaApp(container: AppContainer) {
+fun ServiciosYaApp(
+    container: AppContainer,
+    pendingNotification: NotificationOpen? = null,
+    onNotificationHandled: () -> Unit = {},
+) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(container.authRepository),
     )
@@ -28,6 +35,16 @@ fun ServiciosYaApp(container: AppContainer) {
             assistant = container.serviceAssistant,
             categoryRepository = container.categoryRepository,
             analytics = container.analyticsTracker,
+            retention = container.retentionRecorder,
+        ),
+    )
+    val retentionViewModel: RetentionViewModel = viewModel(
+        factory = RetentionViewModelFactory(
+            store = container.userActivityStore,
+            recorder = container.retentionRecorder,
+            providerRepository = container.providerRepository,
+            push = container.pushMessaging,
+            analytics = container.analyticsTracker,
         ),
     )
     AppNavigation(
@@ -35,5 +52,8 @@ fun ServiciosYaApp(container: AppContainer) {
         authViewModel = authViewModel,
         homeViewModel = homeViewModel,
         assistantViewModel = assistantViewModel,
+        retentionViewModel = retentionViewModel,
+        pendingNotification = pendingNotification,
+        onNotificationHandled = onNotificationHandled,
     )
 }

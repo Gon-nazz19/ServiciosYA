@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.assistant.ServiceAssistant
 import com.example.serviciosya.domain.repository.CategoryRepository
+import com.example.serviciosya.domain.retention.RetentionRecorder
 import com.example.serviciosya.domain.usecase.AnalyzeProblemUseCase
 import com.example.serviciosya.domain.usecase.GetActiveCategoriesUseCase
 
@@ -12,6 +13,7 @@ class AssistantViewModelFactory(
     private val assistant: ServiceAssistant,
     private val categoryRepository: CategoryRepository,
     private val analytics: AnalyticsTracker,
+    private val retention: RetentionRecorder,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -20,6 +22,7 @@ class AssistantViewModelFactory(
             analyzeProblem = AnalyzeProblemUseCase(assistant),
             getActiveCategories = GetActiveCategoriesUseCase(categoryRepository),
             analytics = analytics,
+            retention = retention,
         ) as T
     }
 }

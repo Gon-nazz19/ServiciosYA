@@ -6,6 +6,7 @@ import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.analytics.AssistantResultType
 import com.example.serviciosya.domain.assistant.AssistantException
 import com.example.serviciosya.domain.model.Category
+import com.example.serviciosya.domain.retention.RetentionRecorder
 import com.example.serviciosya.domain.usecase.AnalyzeProblemUseCase
 import com.example.serviciosya.domain.usecase.GetActiveCategoriesUseCase
 import com.example.serviciosya.domain.usecase.normalizeForSearch
@@ -47,6 +48,7 @@ class AssistantViewModel(
     private val analyzeProblem: AnalyzeProblemUseCase,
     private val getActiveCategories: GetActiveCategoriesUseCase,
     private val analytics: AnalyticsTracker,
+    private val retention: RetentionRecorder,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(AssistantUiState())
     val uiState: StateFlow<AssistantUiState> = _uiState.asStateFlow()
@@ -80,6 +82,7 @@ class AssistantViewModel(
                     }
                     _uiState.update { it.copy(isLoading = false, result = result) }
                     track(result)
+                    retention.assistantUsed()
                 }
                 .onFailure { error ->
                     // Input validation errors are the user's to fix and are not an assistant failure.

@@ -29,6 +29,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.serviciosya.di.AppContainer
+import com.example.serviciosya.domain.notifications.NotificationOpen
+import com.example.serviciosya.domain.notifications.NotificationRoute
 import com.example.serviciosya.presentation.assistant.AssistantViewModel
 import com.example.serviciosya.presentation.auth.AuthViewModel
 import com.example.serviciosya.presentation.auth.LoginScreen
@@ -52,6 +54,8 @@ import com.example.serviciosya.presentation.provider.ProvidersViewModel
 import com.example.serviciosya.presentation.provider.ProvidersViewModelFactory
 import com.example.serviciosya.presentation.profile.ProfileScreen
 import com.example.serviciosya.presentation.request.RequestsScreen
+import com.example.serviciosya.presentation.retention.RetentionViewModel
+import com.example.serviciosya.presentation.retention.rememberNotificationPermissionRequest
 import com.example.serviciosya.presentation.request.RequestsViewModel
 import com.example.serviciosya.presentation.request.RequestsViewModelFactory
 
@@ -61,11 +65,16 @@ fun AppNavigation(
     authViewModel: AuthViewModel,
     homeViewModel: HomeViewModel,
     assistantViewModel: AssistantViewModel,
+    retentionViewModel: RetentionViewModel,
+    pendingNotification: NotificationOpen? = null,
+    onNotificationHandled: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
 ) {
     val authState by authViewModel.uiState.collectAsStateWithLifecycle()
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val assistantState by assistantViewModel.uiState.collectAsStateWithLifecycle()
+    val retentionState by retentionViewModel.uiState.collectAsStateWithLifecycle()
+    val requestNotifications = rememberNotificationPermissionRequest(retentionViewModel::onNotificationPermissionResult)
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -82,8 +91,26 @@ fun AppNavigation(
             TopLevelDestination.entries.forEach { navController.clearBackStack(it.route) }
             homeViewModel.resetSearch()
             assistantViewModel.reset()
-            if (authState.user != null) homeViewModel.loadCategories()
+            if (authState.user != null) {
+                homeViewModel.loadCategories()
+                retentionViewModel.start()
+            }
         }
+    }
+
+    // A tapped notification opens its screen once a user is signed in and the session redirect is done,
+    // so the redirect never wipes it. Back then returns to Home.
+    LaunchedEffect(pendingNotification, currentRoute, authState.user?.id) {
+        val open = pendingNotification ?: return@LaunchedEffect
+        if (authState.user == null || currentRoute == null || currentRoute == Routes.SESSION) return@LaunchedEffect
+        container.analyticsTracker.trackNotificationOpen(open.type, open.campaignId)
+        when (val route = open.route) {
+            is NotificationRoute.Category -> navController.navigate(Routes.category(route.categoryId))
+            is NotificationRoute.Provider -> navController.navigate(Routes.provider(route.providerId))
+            NotificationRoute.Requests -> navController.navigateToTopLevel(TopLevelDestination.REQUESTS)
+            null -> Unit
+        }
+        onNotificationHandled()
     }
 
     Scaffold(
@@ -159,6 +186,12 @@ fun AppNavigation(
                         onProviderClick = { provider ->
                             navController.navigate(Routes.provider(provider.id))
                         },
+                        retention = retentionState,
+                        onEnableNotifications = requestNotifications,
+                        onDismissNotificationPrompt = retentionViewModel::disableNotifications,
+                        onForYouProviderClick = { providerId ->
+                            navController.navigate(Routes.provider(providerId))
+                        },
                     )
                 }
             }
@@ -177,6 +210,7 @@ fun AppNavigation(
                         analytics = container.analyticsTracker,
                         adsProvider = container.adsProvider,
                         billing = container.billingRepository,
+                        retention = container.retentionRecorder,
                     ),
                 )
                 val providersState by providersViewModel.uiState.collectAsStateWithLifecycle()
@@ -202,6 +236,8 @@ fun AppNavigation(
                         contactLauncher = container.contactLauncher,
                         locationProvider = container.locationProvider,
                         analytics = container.analyticsTracker,
+                        retention = container.retentionRecorder,
+                        reminders = container.reminderScheduler,
                     ),
                 )
                 val detailState by detailViewModel.uiState.collectAsStateWithLifecycle()
@@ -225,6 +261,7 @@ fun AppNavigation(
                     onCall = detailViewModel::call,
                     onShare = { detailViewModel.share(categoryName) },
                     onDirections = detailViewModel::openDirections,
+                    onToggleFavorite = detailViewModel::toggleFavorite,
                     onUserMessageShown = detailViewModel::onUserMessageShown,
                     onBack = navController::popBackStack,
                 )
@@ -264,6 +301,11 @@ fun AppNavigation(
                         plans = plansState,
                         onAdFree = { navController.navigate(Routes.AD_FREE) },
                         onMyPlan = { navController.navigate(Routes.MY_PLAN) },
+                        notificationsEnabled = retentionState.notificationsEnabled,
+                        onNotificationsToggle = { enable ->
+                            if (enable) requestNotifications() else retentionViewModel.disableNotifications()
+                        },
+                        achievements = retentionState.achievements,
                     )
                 }
             }
