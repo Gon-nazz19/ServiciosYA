@@ -17,6 +17,10 @@ import com.example.serviciosya.data.assistant.UnavailableServiceAssistant
 import com.example.serviciosya.data.contact.AndroidContactLauncher
 import com.example.serviciosya.data.location.FusedLocationProvider
 import com.example.serviciosya.data.location.NoOpLocationProvider
+import com.example.serviciosya.data.notifications.FcmPushMessaging
+import com.example.serviciosya.data.notifications.NoOpPushMessaging
+import com.example.serviciosya.data.notifications.WorkManagerReminderScheduler
+import com.example.serviciosya.data.retention.SharedPrefsUserActivityStore
 import com.example.serviciosya.data.repository.FirebaseAuthRepository
 import com.example.serviciosya.data.repository.FirestoreCategoryRepository
 import com.example.serviciosya.data.repository.FirestoreProviderRepository
@@ -32,6 +36,10 @@ import com.example.serviciosya.domain.billing.SimulatedCheckout
 import com.example.serviciosya.domain.assistant.ServiceAssistant
 import com.example.serviciosya.domain.contact.ContactLauncher
 import com.example.serviciosya.domain.location.LocationProvider
+import com.example.serviciosya.domain.notifications.PushMessaging
+import com.example.serviciosya.domain.notifications.ReminderScheduler
+import com.example.serviciosya.domain.retention.RetentionRecorder
+import com.example.serviciosya.domain.retention.UserActivityStore
 import com.example.serviciosya.domain.repository.AuthRepository
 import com.example.serviciosya.domain.repository.CategoryRepository
 import com.example.serviciosya.domain.repository.ProviderAccountRepository
@@ -46,6 +54,7 @@ import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
+import com.google.firebase.messaging.FirebaseMessaging
 
 class AppContainer(context: Context) {
     private val isFirebaseConfigured = FirebaseApp.getApps(context).isNotEmpty()
@@ -139,4 +148,20 @@ class AppContainer(context: Context) {
         } else {
             NoOpLocationProvider()
         }
+
+    val pushMessaging: PushMessaging = if (isFirebaseConfigured) {
+        FcmPushMessaging(context, FirebaseMessaging.getInstance())
+    } else {
+        NoOpPushMessaging()
+    }
+
+    // Local notification: works without Firebase.
+    val reminderScheduler: ReminderScheduler =
+        WorkManagerReminderScheduler(context, BuildConfig.FOLLOW_UP_DELAY_MINUTES)
+
+    val userActivityStore: UserActivityStore = SharedPrefsUserActivityStore(context) {
+        if (isFirebaseConfigured) FirebaseAuth.getInstance().currentUser?.uid else null
+    }
+
+    val retentionRecorder = RetentionRecorder(userActivityStore, pushMessaging, analyticsTracker)
 }

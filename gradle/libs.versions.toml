@@ -15,6 +15,7 @@ googleServices = "4.5.0"
 playServicesLocation = "21.3.0"
 kotlinxSerialization = "1.9.0"
 adsMobileSdk = "1.6.0"
+workManager = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,8 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workManager" }
 firebase-appcheck = { group = "com.google.firebase", name = "firebase-appcheck" }
 firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug" }
 firebase-appcheck-playintegrity = { group = "com.google.firebase", name = "firebase-appcheck-playintegrity" }

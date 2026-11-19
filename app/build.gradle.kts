@@ -52,12 +52,15 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "APP_CHECK_DEBUG_TOKEN", "\"$appCheckDebugToken\"")
+            // One minute instead of a day, so the follow-up reminder can be shown in a demo.
+            buildConfigField("long", "FOLLOW_UP_DELAY_MINUTES", "1L")
             // Google's public test IDs for Android native ads.
             buildConfigField("boolean", "ADS_ENABLED", "true")
             buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-3940256099942544~3347511713\"")
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"ca-app-pub-3940256099942544/2247696110\"")
         }
         release {
+            buildConfigField("long", "FOLLOW_UP_DELAY_MINUTES", "${24 * 60}L")
             buildConfigField("boolean", "ADS_ENABLED", "${adMobAppId.isNotBlank() && adMobNativeUnitId.isNotBlank()}")
             buildConfigField("String", "ADMOB_APP_ID", "\"$adMobAppId\"")
             buildConfigField("String", "ADMOB_NATIVE_UNIT_ID", "\"$adMobNativeUnitId\"")
@@ -101,6 +104,8 @@ dependencies {
     implementation(libs.firebase.functions)
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.ai)
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.firebase.appcheck)
     debugImplementation(libs.firebase.appcheck.debug)
     releaseImplementation(libs.firebase.appcheck.playintegrity)
