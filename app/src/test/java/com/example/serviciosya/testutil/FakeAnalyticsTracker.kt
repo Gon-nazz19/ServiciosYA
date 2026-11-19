@@ -101,4 +101,32 @@ class FakeAnalyticsTracker : AnalyticsTracker {
             mapOf(AnalyticsParams.PLAN to plan, AnalyticsParams.RESULT to result),
         )
     }
+
+    override fun trackNotificationPermissionResult(granted: Boolean) {
+        events += TrackedEvent(
+            AnalyticsEvents.NOTIFICATION_PERMISSION_RESULT,
+            mapOf(AnalyticsParams.GRANTED to granted.toString()),
+        )
+    }
+
+    override fun trackNotificationOpen(type: String, campaignId: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.NOTIFICATION_OPEN,
+            mapOf(AnalyticsParams.TYPE to type, AnalyticsParams.CAMPAIGN_ID to campaignId),
+        )
+    }
+
+    override fun trackFavoriteChanged(providerId: String, added: Boolean) {
+        events += TrackedEvent(
+            if (added) AnalyticsEvents.FAVORITE_ADDED else AnalyticsEvents.FAVORITE_REMOVED,
+            mapOf(AnalyticsParams.PROVIDER_ID to providerId),
+        )
+    }
+
+    override fun trackAchievementUnlocked(achievementId: String) {
+        events += TrackedEvent(
+            AnalyticsEvents.ACHIEVEMENT_UNLOCKED,
+            mapOf(AnalyticsParams.ACHIEVEMENT_ID to achievementId),
+        )
+    }
 }

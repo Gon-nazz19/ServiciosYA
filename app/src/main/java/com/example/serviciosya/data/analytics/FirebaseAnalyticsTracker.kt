@@ -84,6 +84,27 @@ class FirebaseAnalyticsTracker(
         AnalyticsParams.RESULT to result,
     )
 
+    override fun trackNotificationPermissionResult(granted: Boolean) = log(
+        AnalyticsEvents.NOTIFICATION_PERMISSION_RESULT,
+        AnalyticsParams.GRANTED to granted.toString(),
+    )
+
+    override fun trackNotificationOpen(type: String, campaignId: String) = log(
+        AnalyticsEvents.NOTIFICATION_OPEN,
+        AnalyticsParams.TYPE to type,
+        AnalyticsParams.CAMPAIGN_ID to campaignId,
+    )
+
+    override fun trackFavoriteChanged(providerId: String, added: Boolean) = log(
+        if (added) AnalyticsEvents.FAVORITE_ADDED else AnalyticsEvents.FAVORITE_REMOVED,
+        AnalyticsParams.PROVIDER_ID to providerId,
+    )
+
+    override fun trackAchievementUnlocked(achievementId: String) = log(
+        AnalyticsEvents.ACHIEVEMENT_UNLOCKED,
+        AnalyticsParams.ACHIEVEMENT_ID to achievementId,
+    )
+
     private fun log(event: String, vararg params: Pair<String, String>) {
         val bundle = Bundle()
         params.forEach { (key, value) ->
