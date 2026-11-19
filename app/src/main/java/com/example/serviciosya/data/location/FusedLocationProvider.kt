@@ -41,9 +41,10 @@ class FusedLocationProvider(
             }
         } catch (e: CancellationException) {
             throw e
+        } catch (_: SecurityException) {
+            null // The permission was revoked between the check and the request.
         } catch (_: Exception) {
-            // SecurityException if the permission was revoked after the check, or a Play Services error.
-            null
+            null // Play Services error.
         } finally {
             cancellation.cancel()
         }
