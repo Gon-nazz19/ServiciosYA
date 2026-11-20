@@ -11,6 +11,9 @@ import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCas
 import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.testutil.FakeAdsProvider
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
+import com.example.serviciosya.domain.retention.RetentionRecorder
+import com.example.serviciosya.testutil.FakePushMessaging
+import com.example.serviciosya.testutil.InMemoryUserActivityStore
 import com.example.serviciosya.testutil.FakeBillingRepository
 import com.example.serviciosya.testutil.FakeLocationProvider
 import com.example.serviciosya.testutil.FakeProviderRepository
@@ -31,6 +34,9 @@ class ProvidersViewModelTest {
 
     private val repository = FakeProviderRepository()
     private val analytics = FakeAnalyticsTracker()
+    private val activityStore = InMemoryUserActivityStore()
+    private val push = FakePushMessaging()
+    private val retention = RetentionRecorder(activityStore, push, analytics)
     private val locationProvider = FakeLocationProvider()
     private val userLocation = GeoPoint(-31.4280, -62.0830)
 
@@ -45,6 +51,7 @@ class ProvidersViewModelTest {
         analytics = analytics,
         adsProvider = adsProvider,
         billing = billing,
+        retention = retention,
         now = { FakeBillingRepository.NOW },
     )
 
@@ -55,6 +62,18 @@ class ProvidersViewModelTest {
         testProvider(id = "unknown"),
         testProvider(id = "near", latitude = -31.429, longitude = -62.083),
     )
+
+    @Test
+    fun `viewing a category records it and subscribes to its topic with notifications on`() = runTest {
+        activityStore.setNotificationsOptIn(true)
+        repository.providersResult = Result.success(listOf(testProvider()))
+
+        createViewModel()
+        advanceUntilIdle()
+
+        assertTrue("electricistas" in activityStore.state.value.exploredCategoryIds)
+        assertTrue("categoria_electricistas" in push.subscribedTopics)
+    }
 
     @Test
     fun `starts loading and then shows providers of the category`() = runTest {

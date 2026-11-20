@@ -54,6 +54,9 @@ import androidx.compose.ui.unit.dp
 import com.example.serviciosya.presentation.assistant.AssistantCard
 import com.example.serviciosya.presentation.assistant.AssistantUiState
 import com.example.serviciosya.presentation.components.InitialsAvatar
+import com.example.serviciosya.presentation.retention.ForYouSection
+import com.example.serviciosya.presentation.retention.NotificationPromptCard
+import com.example.serviciosya.presentation.retention.RetentionUiState
 import com.example.serviciosya.presentation.components.formatRating
 
 data class HomeCategoryItem(
@@ -98,6 +101,10 @@ fun HomeScreen(
     onSearchQueryChange: (String) -> Unit = {},
     onCategoryClick: (HomeCategoryItem) -> Unit,
     onProviderClick: (ProviderSearchItem) -> Unit = {},
+    retention: RetentionUiState = RetentionUiState(),
+    onEnableNotifications: () -> Unit = {},
+    onDismissNotificationPrompt: () -> Unit = {},
+    onForYouProviderClick: (providerId: String) -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     Scaffold(
@@ -165,6 +172,14 @@ fun HomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    if (retention.showNotificationPrompt) {
+                        item(key = "notification-prompt", span = { GridItemSpan(maxLineSpan) }) {
+                            NotificationPromptCard(
+                                onEnable = onEnableNotifications,
+                                onDismiss = onDismissNotificationPrompt,
+                            )
+                        }
+                    }
                     item(key = "assistant", span = { GridItemSpan(maxLineSpan) }) {
                         AssistantCard(
                             state = assistant,
@@ -172,6 +187,16 @@ fun HomeScreen(
                             onAnalyze = onAnalyzeProblem,
                             onSeeProviders = onSeeSuggestedProviders,
                         )
+                    }
+                    if (retention.recentProviders.isNotEmpty() || retention.favoriteProviders.isNotEmpty()) {
+                        item(key = "for-you", span = { GridItemSpan(maxLineSpan) }) {
+                            ForYouSection(
+                                recent = retention.recentProviders,
+                                favorites = retention.favoriteProviders,
+                                categoryNames = categories.associate { it.id to it.name },
+                                onProviderClick = onForYouProviderClick,
+                            )
+                        }
                     }
                     item(key = "categories-title", span = { GridItemSpan(maxLineSpan) }) {
                         Text(text = "Categorías", style = MaterialTheme.typography.titleLarge)

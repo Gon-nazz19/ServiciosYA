@@ -33,4 +33,12 @@ class NoOpAnalyticsTracker : AnalyticsTracker {
     override fun trackSubscribeStart(plan: String) = Unit
 
     override fun trackSubscribeResult(plan: String, result: String) = Unit
+
+    override fun trackNotificationPermissionResult(granted: Boolean) = Unit
+
+    override fun trackNotificationOpen(type: String, campaignId: String) = Unit
+
+    override fun trackFavoriteChanged(providerId: String, added: Boolean) = Unit
+
+    override fun trackAchievementUnlocked(achievementId: String) = Unit
 }

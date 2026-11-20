@@ -42,6 +42,16 @@ interface AnalyticsTracker {
 
     /** [result] is "success", "cancelled", "pending" or "error". */
     fun trackSubscribeResult(plan: String, result: String)
+
+    fun trackNotificationPermissionResult(granted: Boolean)
+
+    /** A tapped notification: [type] is "campaign" or "reminder", [campaignId] a short code. */
+    fun trackNotificationOpen(type: String, campaignId: String)
+
+    /** Sent as favorite_added or favorite_removed. */
+    fun trackFavoriteChanged(providerId: String, added: Boolean)
+
+    fun trackAchievementUnlocked(achievementId: String)
 }
 
 enum class AssistantResultType(val value: String) {
@@ -71,6 +81,11 @@ object AnalyticsEvents {
     const val PAYWALL_VIEW = "paywall_view"
     const val SUBSCRIBE_START = "subscribe_start"
     const val SUBSCRIBE_RESULT = "subscribe_result"
+    const val NOTIFICATION_PERMISSION_RESULT = "notification_permission_result"
+    const val NOTIFICATION_OPEN = "notification_open"
+    const val FAVORITE_ADDED = "favorite_added"
+    const val FAVORITE_REMOVED = "favorite_removed"
+    const val ACHIEVEMENT_UNLOCKED = "achievement_unlocked"
 }
 
 object AnalyticsParams {
@@ -87,6 +102,9 @@ object AnalyticsParams {
     const val REASON = "reason"
     const val SOURCE = "source"
     const val PLAN = "plan"
+    const val TYPE = "type"
+    const val CAMPAIGN_ID = "campaign_id"
+    const val ACHIEVEMENT_ID = "achievement_id"
 
     /** Firebase Analytics drops parameter values longer than 100 characters. */
     const val MAX_VALUE_LENGTH = 100

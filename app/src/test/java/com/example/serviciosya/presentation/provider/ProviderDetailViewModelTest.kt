@@ -6,6 +6,10 @@ import com.example.serviciosya.domain.analytics.ContactChannel
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
 import com.example.serviciosya.domain.usecase.GetProviderUseCase
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
+import com.example.serviciosya.domain.retention.RetentionRecorder
+import com.example.serviciosya.testutil.FakePushMessaging
+import com.example.serviciosya.testutil.InMemoryUserActivityStore
+import com.example.serviciosya.testutil.FakeReminderScheduler
 import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.testutil.FakeContactLauncher
 import com.example.serviciosya.testutil.FakeLocationProvider
@@ -31,6 +35,10 @@ class ProviderDetailViewModelTest {
     )
     private val requestRepository = FakeServiceRequestRepository()
     private val analytics = FakeAnalyticsTracker()
+    private val activityStore = InMemoryUserActivityStore()
+    private val push = FakePushMessaging()
+    private val retention = RetentionRecorder(activityStore, push, analytics)
+    private val reminders = FakeReminderScheduler()
     private val contactLauncher = FakeContactLauncher()
     private val locationProvider = FakeLocationProvider()
 
@@ -41,7 +49,76 @@ class ProviderDetailViewModelTest {
         contactLauncher = contactLauncher,
         locationProvider = locationProvider,
         analytics = analytics,
+        retention = retention,
+        reminders = reminders,
     )
+
+    @Test
+    fun `viewing a provider adds it to the recent ones`() = runTest {
+        createViewModel()
+        advanceUntilIdle()
+
+        assertEquals(listOf("provider-1"), activityStore.state.value.recentProviderIds)
+    }
+
+    @Test
+    fun `favorite toggles and is remembered`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.isFavorite)
+
+        viewModel.toggleFavorite()
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isFavorite)
+        assertEquals(listOf("provider-1"), activityStore.state.value.favoriteProviderIds)
+        assertTrue(createViewModel().also { advanceUntilIdle() }.uiState.value.isFavorite)
+
+        viewModel.toggleFavorite()
+        advanceUntilIdle()
+        assertTrue(activityStore.state.value.favoriteProviderIds.isEmpty())
+    }
+
+    @Test
+    fun `a successful request schedules the follow-up reminder and unlocks first contact`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        assertEquals(listOf("provider-1" to "Carlos Electricidad"), reminders.scheduled)
+        val event = analytics.eventsNamed(AnalyticsEvents.ACHIEVEMENT_UNLOCKED).single()
+        assertEquals("first_contact", event.params[AnalyticsParams.ACHIEVEMENT_ID])
+    }
+
+    @Test
+    fun `a failed request does not schedule a reminder`() = runTest {
+        requestRepository.createResult = Result.failure(RuntimeException("offline"))
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.requestContact(categoryName = "Electricista")
+        advanceUntilIdle()
+
+        assertTrue(reminders.scheduled.isEmpty())
+    }
+
+    @Test
+    fun `opening whatsapp schedules the reminder, a failed launch does not`() = runTest {
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+        contactLauncher.result = false
+        viewModel.contactByWhatsApp()
+        advanceUntilIdle()
+        assertTrue(reminders.scheduled.isEmpty())
+
+        contactLauncher.result = true
+        viewModel.contactByWhatsApp()
+        advanceUntilIdle()
+
+        assertEquals("provider-1", reminders.scheduled.single().first)
+    }
 
     @Test
     fun `loads the provider by id`() = runTest {

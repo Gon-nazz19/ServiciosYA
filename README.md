@@ -11,7 +11,7 @@ ServiciosYA es una app Android que conecta a personas que necesitan resolver un 
 
 Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsApp o de buscar en redes. Esa búsqueda es lenta, no deja registro y no permite comparar. ServiciosYA reúne a los prestadores por rubro, muestra su calificación y permite pedirles contacto desde la app.
 
-> Proyecto desarrollado para **Arquitecturas Móviles 2026** (UTN – Facultad Regional San Francisco): el ciclo **Build-Measure-Learn** de *Lean Mobile App Development* (TP2), la estrategia de escalabilidad (TP3) y la integración de APIs y SDKs (TP7).
+> Proyecto desarrollado para **Arquitecturas Móviles 2026** (UTN – Facultad Regional San Francisco): el ciclo **Build-Measure-Learn** de *Lean Mobile App Development* (TP2), la estrategia de escalabilidad (TP3), la retención de usuarios con notificaciones push (TP6) y la integración de APIs y SDKs (TP7).
 
 ## Capturas
 
@@ -22,6 +22,8 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 | <img src="docs/screenshots/04-perfil-prestador.png" width="220" alt="Perfil del prestador con el botón Solicitar contacto"> | <img src="docs/screenshots/05-busqueda.png" width="220" alt="Resultados de búsqueda de categorías y prestadores"> | <img src="docs/screenshots/06-mis-solicitudes.png" width="220" alt="Listado de solicitudes enviadas con su estado"> |
 | **Asistente con IA** | **Prestadores por cercanía** | **Contacto por WhatsApp** |
 | <img src="docs/screenshots/tp7-08-asistente-electricista.png" width="220" alt="El asistente sugiere Electricista y redacta el mensaje"> | <img src="docs/screenshots/tp7-01-distancias.png" width="220" alt="Plomeros ordenados por distancia"> | <img src="docs/screenshots/tp7-07-whatsapp.png" width="220" alt="WhatsApp con el mensaje armado para el prestador"> |
+| **Para vos y favoritos** | **Campaña push** | **Logros** |
+| <img src="docs/screenshots/tp6-02-inicio-para-vos.png" width="220" alt="Inicio con la pregunta de notificaciones y los favoritos"> | <img src="docs/screenshots/tp6-07-campana-categoria.png" width="220" alt="Notificación de una campaña de electricistas"> | <img src="docs/screenshots/tp6-11-perfil-logros.png" width="220" alt="Perfil con notificaciones activadas y logros"> |
 
 ## Funcionalidades
 
@@ -31,13 +33,16 @@ Hoy encontrar a alguien confiable depende del boca en boca, de grupos de WhatsAp
 - **Perfil del prestador:** descripción del servicio, calificación, ciudad, distancia y botón "Cómo llegar".
 - **Contacto directo:** botones para escribirle por **WhatsApp** con el mensaje ya armado, **llamar** o **compartir** el prestador.
 - **Asistente con IA (Gemini):** el usuario cuenta su problema con sus palabras y la app le sugiere la categoría y le redacta el mensaje para el prestador.
+- **Notificaciones push (Firebase Cloud Messaging):** campañas segmentadas por las categorías que le interesan al usuario y un recordatorio "¿Pudiste resolverlo?" un día después de contactar a un prestador. Cada notificación abre la pantalla relacionada.
+- **Para vos:** el Inicio muestra los prestadores favoritos (botón ♡) y los vistos recientemente.
+- **Logros:** insignias en el Perfil por los primeros pasos en la app, con una barra de progreso.
 - **Solicitud de contacto:** con un mensaje opcional de hasta 500 caracteres. La app evita que se envíe dos veces por un doble toque.
 - **Mis solicitudes:** el historial de pedidos con su estado.
 - **Búsqueda:** por nombre de categoría o de prestador, sin importar tildes ni mayúsculas.
 - **Navegación inferior:** Inicio, Solicitudes y Perfil.
 - **Mensajes claros en español:** validaciones de formularios, errores de conexión y estados vacíos, con opción de reintentar.
 - **Privacidad:** cada usuario ve solo sus propias solicitudes. Lo garantizan las reglas de seguridad de Firestore, no solo la app.
-- **Medición:** eventos de Google Analytics en cada paso del recorrido (`category_view`, `provider_view`, `contact_request` y `service_search`), y de las integraciones del TP7 (`contact_channel`, `location_permission_result`, `assistant_used` y `assistant_unmatched`). Nunca se envían datos personales ni coordenadas.
+- **Medición:** eventos de Google Analytics en cada paso del recorrido (`category_view`, `provider_view`, `contact_request` y `service_search`), de las integraciones del TP7 (`contact_channel`, `location_permission_result`, `assistant_used` y `assistant_unmatched`) y de la retención del TP6 (`notification_open`, `notification_permission_result`, `favorite_added` y `achievement_unlocked`). Nunca se envían datos personales ni coordenadas.
 
 ## Cómo funciona
 
@@ -51,6 +56,8 @@ flowchart LR
     D --> E[Solicitar contacto]
     D --> H[WhatsApp · Llamar<br/>Compartir]
     E --> F[Mis solicitudes]
+    E -. "24 h después" .-> R[Recordatorio push<br/>¿Pudiste resolverlo?]
+    R -.-> D
 ```
 
 ## Tecnologías
@@ -61,6 +68,7 @@ flowchart LR
 | Estado y asincronía | ViewModel, StateFlow, Kotlin Coroutines |
 | Backend | Firebase Authentication, Cloud Firestore, Google Analytics, App Check (Firebase BoM 34.19.0) |
 | APIs y SDKs (TP7) | Firebase AI Logic con Gemini (`gemini-3.5-flash`), Google Play Services Location, Intents de Android (WhatsApp `wa.me`, marcador y compartir) |
+| Retención (TP6) | Firebase Cloud Messaging (topics), WorkManager, campañas con el Firebase Admin SDK (`tools/push`) |
 | Nube (TP3) | Azure Container Apps para el laboratorio de escalabilidad |
 | Seguridad | Firestore Security Rules, versionadas y con tests |
 | Herramientas | Node.js con el Firebase Admin SDK (seed, reglas y métricas) y Python (simulación de usuarios) |
@@ -79,7 +87,7 @@ Pantallas Compose → ViewModels → Casos de uso → Repositorios (interfaces) 
 - Los errores de Firebase se traducen en la capa de datos a mensajes en español.
 - Los SDKs del TP7 siguen el mismo patrón: cada uno tiene una interfaz en el dominio (`LocationProvider`, `ContactLauncher`, `ServiceAssistant`), su implementación en la capa de datos y una alternativa que no rompe la app si el SDK no está disponible.
 
-El detalle completo, con el modelo de datos, la arquitectura propuesta, el diagrama de escalabilidad (TP3) y el de integraciones (TP7), está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
+El detalle completo, con el modelo de datos, la arquitectura propuesta, el diagrama de escalabilidad (TP3), el de integraciones (TP7) y el de retención (TP6), está en [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md).
 
 ## Estructura del repositorio
 
@@ -96,7 +104,8 @@ ServiciosYA/
 │   ├── firestore-rules/    Tests y publicación de las reglas de seguridad
 │   ├── metrics/            Métricas de uso a partir de Firestore
 │   ├── simulation/         Simulación de usuarios sobre la app real
-│   └── scaling-lab/        Laboratorio de escalabilidad (Docker y Azure Container Apps)
+│   ├── scaling-lab/        Laboratorio de escalabilidad (Docker y Azure Container Apps)
+│   └── push/               Envío de campañas de notificaciones push (FCM)
 ├── firestore.rules         Reglas de seguridad de Firestore
 └── FIREBASE_SETUP.md       Cómo conectar la app a un proyecto de Firebase
 ```
@@ -141,6 +150,7 @@ ServiciosYA/
 | Repositorios | Repositorios reales contra los emuladores de Auth y Firestore | `cd tools/firestore-rules && npm run test:android` |
 | Manual | Flujo completo en la app | Checklist en [`docs/TESTING.md`](docs/TESTING.md) |
 | Manual TP7 | Ubicación, contacto directo y asistente con IA, con capturas | [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md#42-prueba-manual) |
+| Manual TP6 | Permiso, recordatorio, campañas push con la app abierta y cerrada, favoritos y logros, con capturas | [`docs/RETENCION.md`](docs/RETENCION.md#32-prueba-manual) |
 
 Los tests de reglas y de repositorios usan los emuladores locales de Firebase con un proyecto `demo-`, así que nunca tocan la base real.
 
@@ -153,7 +163,7 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 ## Próximos pasos
 
 - **Modo prestador:** alta de perfil y bandeja para aceptar o rechazar solicitudes.
-- **Notificaciones push** al prestador cuando recibe una solicitud y al cliente cuando se la aceptan.
+- **Notificaciones push al prestador** cuando recibe una solicitud, y al cliente cuando se la aceptan. Las campañas y los recordatorios al cliente ya están (TP6); falta el modo prestador.
 - **Búsquedas sin resultado:** el asistente ya registra los servicios que faltan (`assistant_unmatched`). Falta ofrecer "avisame cuando haya".
 - **Reseñas reales**, y disponibilidad y rotación en el listado, para que la demanda no se concentre siempre en los mismos prestadores.
 
@@ -163,13 +173,14 @@ La decisión fue **perseverar**: repetir la prueba con personas reales y, en la 
 |---|---|
 | [`docs/MVP.md`](docs/MVP.md) | Definición del MVP: problema, hipótesis, alcance y métricas de éxito |
 | [`docs/RESULTADOS.md`](docs/RESULTADOS.md) | Resultados de la prueba, hallazgos y decisión de pivotar o perseverar |
-| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada, diagrama de escalabilidad (TP3) y de integraciones (TP7) |
+| [`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md) | Arquitectura actual, modelo de datos, arquitectura actualizada y diagramas de escalabilidad (TP3), retención (TP6) e integraciones (TP7) |
 | [`docs/ESCALABILIDAD.md`](docs/ESCALABILIDAD.md) | TP3: estrategia de escalabilidad, configuración en la nube y mediciones |
+| [`docs/RETENCION.md`](docs/RETENCION.md) | TP6: estrategias de retención, configuración de las notificaciones push, campañas y pruebas |
 | [`docs/INTEGRACIONES.md`](docs/INTEGRACIONES.md) | TP7: selección, implementación y pruebas de las integraciones de APIs y SDKs |
 | [`docs/PRUEBA_USUARIOS.md`](docs/PRUEBA_USUARIOS.md) | Protocolo para la prueba con usuarios reales |
 | [`docs/TESTING.md`](docs/TESTING.md) | Estrategia de testing y checklist de prueba manual |
 | [`FIREBASE_SETUP.md`](FIREBASE_SETUP.md) | Configuración de Firebase |
-| [`tools/seed`](tools/seed/README.md) · [`tools/firestore-rules`](tools/firestore-rules/README.md) · [`tools/metrics`](tools/metrics/README.md) · [`tools/simulation`](tools/simulation/README.md) | Herramientas de soporte |
+| [`tools/seed`](tools/seed/README.md) · [`tools/firestore-rules`](tools/firestore-rules/README.md) · [`tools/metrics`](tools/metrics/README.md) · [`tools/simulation`](tools/simulation/README.md) · [`tools/push`](tools/push/README.md) | Herramientas de soporte |
 
 ## Autores
 

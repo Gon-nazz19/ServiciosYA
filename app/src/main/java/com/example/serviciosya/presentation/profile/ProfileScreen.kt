@@ -30,7 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.serviciosya.domain.model.User
+import com.example.serviciosya.domain.retention.Achievement
 import com.example.serviciosya.presentation.billing.ProfilePlansUiState
+import com.example.serviciosya.presentation.retention.AchievementsSection
+import com.example.serviciosya.presentation.retention.NotificationsSwitchRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +45,9 @@ fun ProfileScreen(
     plans: ProfilePlansUiState = ProfilePlansUiState(),
     onAdFree: () -> Unit = {},
     onMyPlan: () -> Unit = {},
+    notificationsEnabled: Boolean = false,
+    onNotificationsToggle: (Boolean) -> Unit = {},
+    achievements: List<Achievement> = emptyList(),
 ) {
     Scaffold(
         topBar = {
@@ -82,6 +88,11 @@ fun ProfileScreen(
                     subtitle = if (plans.featuredActive) "Destacado activo" else "Destacate en el listado",
                     onClick = onMyPlan,
                 )
+            }
+            Text(text = "Preferencias", style = MaterialTheme.typography.titleMedium)
+            NotificationsSwitchRow(enabled = notificationsEnabled, onToggle = onNotificationsToggle)
+            if (achievements.isNotEmpty()) {
+                AchievementsSection(achievements)
             }
             Button(
                 onClick = onSignOut,

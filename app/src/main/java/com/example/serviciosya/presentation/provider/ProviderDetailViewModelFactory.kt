@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.serviciosya.domain.analytics.AnalyticsTracker
 import com.example.serviciosya.domain.contact.ContactLauncher
 import com.example.serviciosya.domain.location.LocationProvider
+import com.example.serviciosya.domain.notifications.ReminderScheduler
+import com.example.serviciosya.domain.retention.RetentionRecorder
 import com.example.serviciosya.domain.repository.ProviderRepository
 import com.example.serviciosya.domain.repository.ServiceRequestRepository
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
@@ -17,6 +19,8 @@ class ProviderDetailViewModelFactory(
     private val contactLauncher: ContactLauncher,
     private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
+    private val retention: RetentionRecorder,
+    private val reminders: ReminderScheduler,
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -28,6 +32,8 @@ class ProviderDetailViewModelFactory(
             contactLauncher = contactLauncher,
             locationProvider = locationProvider,
             analytics = analytics,
+            retention = retention,
+            reminders = reminders,
         ) as T
     }
 }

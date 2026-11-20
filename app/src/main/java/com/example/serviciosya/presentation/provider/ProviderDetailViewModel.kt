@@ -11,6 +11,8 @@ import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.location.distanceBucket
 import com.example.serviciosya.domain.model.NewServiceRequest
 import com.example.serviciosya.domain.model.Provider
+import com.example.serviciosya.domain.notifications.ReminderScheduler
+import com.example.serviciosya.domain.retention.RetentionRecorder
 import com.example.serviciosya.domain.usecase.CreateServiceRequestUseCase
 import com.example.serviciosya.domain.usecase.GetProviderUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +30,7 @@ data class ProviderDetailUiState(
     val requestSent: Boolean = false,
     val userMessage: String? = null,
     val distanceKm: Double? = null,
+    val isFavorite: Boolean = false,
 )
 
 class ProviderDetailViewModel(
@@ -37,6 +40,8 @@ class ProviderDetailViewModel(
     private val contactLauncher: ContactLauncher,
     private val locationProvider: LocationProvider,
     private val analytics: AnalyticsTracker,
+    private val retention: RetentionRecorder,
+    private val reminders: ReminderScheduler,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ProviderDetailUiState())
     val uiState: StateFlow<ProviderDetailUiState> = _uiState.asStateFlow()
@@ -62,6 +67,8 @@ class ProviderDetailViewModel(
                         )
                     }
                     if (provider == null) return@onSuccess
+                    retention.providerViewed(provider.id)
+                    _uiState.update { it.copy(isFavorite = retention.isFavorite(provider.id)) }
                     // Usually instant: the list screen already asked for the location moments ago.
                     val distanceKm = DistanceCalculator.distanceKm(locationProvider.getCurrentLocation(), provider)
                     _uiState.update { it.copy(distanceKm = distanceKm) }
@@ -106,6 +113,7 @@ class ProviderDetailViewModel(
                     provider.categoryId,
                     fromAssistant = messageFromAssistant && state.message.isNotBlank(),
                 )
+                onContactMade(provider)
             }
             _uiState.update {
                 if (result.isSuccess) {
@@ -146,7 +154,20 @@ class ProviderDetailViewModel(
         val message = ContactLinkBuilder.whatsAppMessage(provider.name, _uiState.value.message)
         launchContact(provider, ContactChannel.WHATSAPP, WHATSAPP_ERROR_MESSAGE) {
             contactLauncher.openWhatsApp(ContactLinkBuilder.whatsAppUrl(phone, message))
-        }
+        }.also { opened -> if (opened) viewModelScope.launch { onContactMade(provider) } }
+    }
+
+    fun toggleFavorite() {
+        val provider = _uiState.value.provider ?: return
+        val favorite = !_uiState.value.isFavorite
+        _uiState.update { it.copy(isFavorite = favorite) }
+        viewModelScope.launch { retention.setFavorite(provider.id, favorite) }
+    }
+
+    /** Strategy 2: a reminder some time after the contact, in case the provider never answered. */
+    private suspend fun onContactMade(provider: Provider) {
+        reminders.scheduleFollowUp(provider.id, provider.name)
+        retention.contactMade()
     }
 
     fun call() {
@@ -175,17 +196,20 @@ class ProviderDetailViewModel(
         }
     }
 
+    /** Returns whether another app could be opened. */
     private fun launchContact(
         provider: Provider,
         channel: ContactChannel,
         errorMessage: String,
         open: () -> Boolean,
-    ) {
-        if (open()) {
+    ): Boolean {
+        val opened = open()
+        if (opened) {
             analytics.trackContactChannel(channel, provider.id, provider.categoryId)
         } else {
             _uiState.update { it.copy(userMessage = errorMessage) }
         }
+        return opened
     }
 
     fun onUserMessageShown() {

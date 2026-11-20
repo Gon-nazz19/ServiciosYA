@@ -16,6 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.Call
 import androidx.compose.material.icons.outlined.Directions
@@ -65,6 +68,7 @@ fun ProviderDetailScreen(
     onDirections: () -> Unit,
     onUserMessageShown: () -> Unit,
     onBack: () -> Unit,
+    onToggleFavorite: () -> Unit = {},
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(uiState.userMessage) {
@@ -82,6 +86,17 @@ fun ProviderDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                actions = {
+                    if (uiState.provider != null) {
+                        IconButton(onClick = onToggleFavorite) {
+                            Icon(
+                                imageVector = if (uiState.isFavorite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                contentDescription = if (uiState.isFavorite) "Quitar de favoritos" else "Guardar en favoritos",
+                                tint = if (uiState.isFavorite) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                            )
+                        }
                     }
                 },
             )

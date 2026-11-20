@@ -596,3 +596,131 @@ Un prestador con plan activo tampoco ve anuncios. Si el cliente compra el de por
 > **Limitación de seguridad.** Con la pasarela simulada, las reglas no pueden comprobar que el pago exista: cualquier usuario puede escribir su propio plan, o un `featuredUntil` lejano, sin pagar. Es aceptable solo para la simulación. Con pagos reales hay que validar el recibo de Play en un backend (por ejemplo, una Cloud Function) y cerrar esos permisos de escritura.
 >
 > **Reglas publicadas.** Las reglas de `tp-2-54a64` son las anteriores al TP3 más estos dos bloques. El `firestore.rules` del repositorio todavía tiene desactivada la creación directa de solicitudes (a la espera de la Cloud Function `createServiceRequest`), así que no se debe publicar tal cual mientras la app siga creándolas directo.
+
+## 9. Retención de usuarios y notificaciones push (TP6)
+
+> Entregable 3 del TP6. Las estrategias, la configuración y las pruebas están en [RETENCION.md](RETENCION.md).
+
+El diagrama suma a la app los mecanismos de retención: **campañas push por interés**, **recordatorio de seguimiento**, **contenido personalizado** ("Para vos") y **logros**. Usa la misma leyenda que la sección 3: ⬜ existente, 🟨 modificado, 🟩 nuevo.
+
+Se mantiene el patrón de las secciones anteriores: cada pieza nueva tiene una interfaz en el dominio (`PushMessaging`, `ReminderScheduler`, `UserActivityStore`), su implementación en Datos y una alternativa que no rompe la app. `RetentionRecorder` concentra la lógica: registra la actividad, suscribe a los topics y detecta los logros, así ningún ViewModel la repite.
+
+### 9.1 Vista general
+
+```mermaid
+flowchart LR
+    subgraph APP["App Android (Kotlin + Jetpack Compose)"]
+        subgraph UI["Presentación"]
+            HOME["<b>Inicio</b><br/>+ pregunta de notificaciones<br/>+ Para vos: favoritos y vistos"]
+            DET["<b>Perfil del prestador</b><br/>+ botón favorito"]
+            PROF["<b>Perfil</b><br/>+ interruptor de notificaciones<br/>+ Logros"]
+            RVM["<b>RetentionViewModel</b><br/>(nivel app)"]
+        end
+        subgraph DOM["Dominio"]
+            REC["<b>RetentionRecorder</b><br/>actividad, topics<br/>y logros"]
+            PURE["<b>Lógica pura</b> (con unit tests)<br/>Achievements · NotificationRoute · Topics"]
+            IFACE["<b>Interfaces</b><br/>PushMessaging<br/>ReminderScheduler<br/>UserActivityStore"]
+        end
+        subgraph DAT["Datos (creados por AppContainer)"]
+            FCMI["<b>FcmPushMessaging</b><br/>suscribe a topics<br/>fallback: NoOpPushMessaging"]
+            SRV["<b>ServiciosYaMessagingService</b><br/>campañas en primer plano"]
+            WM["<b>WorkManagerReminderScheduler</b><br/>+ FollowUpReminderWorker"]
+            STORE["<b>SharedPrefsUserActivityStore</b><br/>vistos, favoritos, hitos"]
+            CH["<b>AppNotifications</b><br/>canales Novedades<br/>y Recordatorios"]
+        end
+    end
+
+    subgraph FB["Firebase (proyecto tp-2-54a64, plan Spark)"]
+        FCM["<b>Cloud Messaging (FCM)</b><br/>topics: novedades<br/>categoria_&lt;id&gt;"]
+        CON["<b>Consola: Messaging</b><br/>campañas sin código"]
+    end
+
+    GA["<b>Firebase Analytics</b><br/>+ notification_open<br/>+ notification_permission_result<br/>+ favorite_added / removed<br/>+ achievement_unlocked"]
+
+    PUSH["<b>tools/push</b><br/>Node + Admin SDK<br/>campaigns.json"]
+
+    subgraph OS["Android"]
+        TRAY["<b>Bandeja de notificaciones</b><br/>permiso POST_NOTIFICATIONS"]
+        JOB["<b>WorkManager</b><br/>recordatorio a las 24 h"]
+    end
+
+    subgraph LEG["Leyenda"]
+        L1["Existente"]
+        L2["Modificado"]
+        L3["Nuevo"]
+    end
+
+    HOME & DET & PROF --> RVM
+    RVM --> REC
+    REC --> PURE
+    REC --> IFACE
+    IFACE -. "implementadas por" .-> FCMI & WM & STORE
+    FCMI -- "subscribeToTopic" --> FCM
+    FCM -- "campaña" --> SRV
+    WM -- "programa" --> JOB
+    SRV --> CH
+    JOB -- "notificación local" --> CH
+    CH --> TRAY
+    FCM -- "app en segundo plano" --> TRAY
+    PUSH -- "send(topic) HTTP v1" --> FCM
+    CON -- "campaña a un topic" --> FCM
+    REC -- "eventos" --> GA
+
+    classDef existing fill:#eceff1,stroke:#607d8b,color:#263238;
+    classDef modified fill:#fff3cd,stroke:#e0a800,color:#5d4037;
+    classDef new fill:#d9f2d9,stroke:#2e7d32,color:#1b5e20;
+    class TRAY,L1 existing;
+    class HOME,DET,PROF,GA,L2 modified;
+    class RVM,REC,PURE,IFACE,FCMI,SRV,WM,STORE,CH,FCM,CON,PUSH,JOB,L3 new;
+```
+
+- **Push sin backend propio.** Las campañas se segmentan por **topics** de FCM: `novedades` para todos los que aceptaron y `categoria_<id>` por cada categoría que el usuario explora. Como el envío es a topics, no hace falta guardar tokens ni tener Cloud Functions, y funciona en el plan gratuito.
+- **Dos formas de enviar.** Desde la consola de Firebase (Messaging, sin código) o con `tools/push`, un script con el Admin SDK que lee `campaigns.json`.
+- **Recordatorio local.** Lo programa WorkManager en el teléfono, así que no necesita servidor y se mantiene aunque la app se cierre o el teléfono se reinicie.
+- **Datos locales.** Vistos recientes, favoritos y logros se guardan en el teléfono, separados por usuario. No se agregan colecciones ni reglas en Firestore.
+
+### 9.2 Flujo de una campaña
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor E as Equipo
+    participant T as tools/push o Consola
+    participant F as Firebase Cloud Messaging
+    participant A as Android (bandeja)
+    participant S as ServiciosYaMessagingService
+    participant M as MainActivity + AppNavigation
+    participant G as Firebase Analytics
+    actor U as Usuario
+
+    Note over U,M: Antes: el usuario aceptó las notificaciones y abrió Electricista,<br/>así que el dispositivo está suscripto a novedades y categoria_electricistas
+    E->>T: npm run send -- --campaign electricistas-destacados
+    T->>F: send(topic = categoria_electricistas,<br/>data = route, campaign_id)
+    alt App en segundo plano o cerrada
+        F-->>A: Android muestra la notificación
+    else App en primer plano
+        F-->>S: onMessageReceived
+        S-->>A: notificación con el mismo route
+    end
+    U->>A: toca "Electricistas cerca tuyo"
+    A->>M: Intent con route = category/electricistas
+    M->>M: espera a que la sesión esté lista
+    M->>G: notification_open (campaign, electricistas-destacados)
+    M-->>U: abre la categoría Electricista
+```
+
+La navegación espera a que termine la redirección de la sesión antes de abrir la pantalla de la notificación, así funciona igual si la app estaba abierta, en segundo plano o cerrada. El toque lo mide Analytics con `notification_open`.
+
+### 9.3 Componentes y para qué sirven
+
+| Componente | Capa | Para qué | Estrategia |
+|---|---|---|---|
+| Firebase Cloud Messaging + topics | Servicio externo | Entregar campañas a los usuarios interesados | 1. Campañas por interés |
+| `tools/push` y la consola de Messaging | Herramientas | Crear y enviar campañas | 1 |
+| `ServiciosYaMessagingService`, `AppNotifications` | Datos | Mostrar la notificación en primer plano, canales Novedades y Recordatorios | 1 y 2 |
+| `MainActivity` + `NotificationRoute` | Presentación / Dominio | Abrir la categoría o el prestador de la notificación (deep link) | 1 y 2 |
+| `WorkManagerReminderScheduler` + `FollowUpReminderWorker` | Datos | Recordatorio "¿Pudiste resolverlo?" después de contactar | 2. Seguimiento |
+| `SharedPrefsUserActivityStore` | Datos | Vistos recientes, favoritos, categorías e hitos | 3 y 4 |
+| `RetentionViewModel` y las secciones del Inicio y el Perfil | Presentación | Pregunta de notificaciones, "Para vos", interruptor y logros | 3. Personalización, 4. Logros |
+| `Achievements` | Dominio | Calcular las insignias a partir de la actividad | 4 |
+| Eventos de Analytics | Medición | `notification_open`, `notification_permission_result`, `favorite_added/removed`, `achievement_unlocked` | Todas |

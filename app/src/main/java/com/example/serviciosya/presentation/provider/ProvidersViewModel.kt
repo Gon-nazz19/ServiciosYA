@@ -13,6 +13,7 @@ import com.example.serviciosya.domain.location.DistanceCalculator
 import com.example.serviciosya.domain.location.LocationProvider
 import com.example.serviciosya.domain.model.GeoPoint
 import com.example.serviciosya.domain.model.Provider
+import com.example.serviciosya.domain.retention.RetentionRecorder
 import com.example.serviciosya.domain.usecase.GetActiveProvidersByCategoryUseCase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ class ProvidersViewModel(
     private val analytics: AnalyticsTracker,
     private val adsProvider: AdsProvider,
     private val billing: BillingRepository,
+    private val retention: RetentionRecorder,
     private val now: () -> Long = System::currentTimeMillis,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
@@ -76,6 +78,7 @@ class ProvidersViewModel(
                     if (!categoryViewTracked) {
                         categoryViewTracked = true
                         analytics.trackCategoryView(categoryId, categoryName)
+                        retention.categoryViewed(categoryId)
                     }
                     loadAds(loaded.size)
                 }

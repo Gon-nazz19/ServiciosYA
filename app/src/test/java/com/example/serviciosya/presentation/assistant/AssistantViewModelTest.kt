@@ -7,6 +7,10 @@ import com.example.serviciosya.domain.assistant.AssistantSuggestion
 import com.example.serviciosya.domain.usecase.AnalyzeProblemUseCase
 import com.example.serviciosya.domain.usecase.GetActiveCategoriesUseCase
 import com.example.serviciosya.testutil.FakeAnalyticsTracker
+import com.example.serviciosya.domain.retention.Milestone
+import com.example.serviciosya.domain.retention.RetentionRecorder
+import com.example.serviciosya.testutil.FakePushMessaging
+import com.example.serviciosya.testutil.InMemoryUserActivityStore
 import com.example.serviciosya.testutil.FakeCategoryRepository
 import com.example.serviciosya.testutil.FakeServiceAssistant
 import com.example.serviciosya.testutil.MainDispatcherRule
@@ -34,12 +38,32 @@ class AssistantViewModelTest {
         ),
     )
     private val analytics = FakeAnalyticsTracker()
+    private val activityStore = InMemoryUserActivityStore()
+    private val push = FakePushMessaging()
+    private val retention = RetentionRecorder(activityStore, push, analytics)
 
     private fun createViewModel() = AssistantViewModel(
         analyzeProblem = AnalyzeProblemUseCase(assistant),
         getActiveCategories = GetActiveCategoriesUseCase(categoryRepository),
         analytics = analytics,
+        retention = retention,
     )
+
+    @Test
+    fun `an answered question unlocks the first consultation badge, an error does not`() = runTest {
+        assistant.result = Result.failure(AssistantException(RuntimeException("quota")))
+        val viewModel = createViewModel()
+        viewModel.onProblemChange("Se me cortó la luz")
+        viewModel.analyze()
+        advanceUntilIdle()
+        assertTrue(activityStore.state.value.milestones.isEmpty())
+
+        assistant.result = Result.success(AssistantSuggestion("electricistas", "Hola", null))
+        viewModel.analyze()
+        advanceUntilIdle()
+
+        assertEquals(setOf(Milestone.ASSISTANT_USED), activityStore.state.value.milestones)
+    }
 
     @Test
     fun `matched result shows the category and tracks it`() = runTest {
