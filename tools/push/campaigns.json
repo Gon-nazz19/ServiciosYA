@@ -1,0 +1,32 @@
+{
+  "campaigns": [
+    {
+      "id": "bienvenida-novedades",
+      "topic": "novedades",
+      "title": "¡Ya estás al tanto!",
+      "body": "Te vamos a avisar de prestadores nuevos y novedades de las categorías que mirás.",
+      "route": ""
+    },
+    {
+      "id": "electricistas-destacados",
+      "topic": "categoria_electricistas",
+      "title": "Electricistas cerca tuyo",
+      "body": "Mirá los electricistas mejor calificados de San Francisco y pedí contacto en un toque.",
+      "route": "category/electricistas"
+    },
+    {
+      "id": "reactivacion",
+      "topic": "novedades",
+      "title": "¿Se rompió algo en casa?",
+      "body": "Contale tu problema al asistente y te decimos qué servicio necesitás.",
+      "route": ""
+    },
+    {
+      "id": "plomero-recomendado",
+      "topic": "categoria_plomeros",
+      "title": "Un plomero recomendado para vos",
+      "body": "Aguas Claras Servicios atiende en tu zona. Escribile por WhatsApp desde la app.",
+      "route": "provider/aguas-claras"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "serviciosya-push",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Envía las campañas de notificaciones push de ServiciosYa con Firebase Cloud Messaging.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node send.js --dry-run --all",
+    "list": "node send.js --list",
+    "send": "node send.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}
